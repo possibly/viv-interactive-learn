@@ -50,6 +50,23 @@ const entities = {
 };
 `
 
+const HOST_ADAPTER = `// The host already implements updateEntityProperty as part of its
+// adapter (we wrote it back in stage 1, where it never fired).
+// The runtime calls it once per effect statement, after the cast
+// is picked, with (entityID, propertyPath, newValue).
+
+const adapter = {
+  // ...other callbacks (getEntityIDs, saveActionData, ...)...
+
+  updateEntityProperty(id, path, value) {
+    // path looks like ["cheerful"] or ["inventory", "sword"].
+    let cur = entities[id];
+    for (let i = 0; i < path.length - 1; i++) cur = cur[path[i]];
+    cur[path[path.length - 1]] = value;
+  },
+};
+`
+
 export default function App() {
   const [stage1Source, setStage1Source] = useState<string>('Loading...')
   const [stage2Source, setStage2Source] = useState<string>('Loading...')
@@ -202,6 +219,24 @@ export default function App() {
           host stores on that entity. The compiler attaches each condition to the role it
           depends on, so the runtime evaluates it per cast, not per action.
         </p>
+        <aside className="callout">
+          <p>
+            <strong>Where did <code>@subject</code> come from?</strong> It is not a
+            built-in name. It is one of the two roles this action declared in its{' '}
+            <code>roles:</code> block (the other is <code>@admirer</code>). Each action
+            defines its own role names, and only those names are in scope inside that
+            action's conditions, effects, and report. There is no global list of
+            bindings; if you want a different name, you rename the role. See{' '}
+            <a
+              href="https://viv.sifty.studio/reference/language/09-roles/#role-reference"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Roles &rsaquo; Role reference
+            </a>{' '}
+            for the syntax.
+          </p>
+        </aside>
       </section>
 
       <section className="prose">
@@ -239,10 +274,17 @@ export default function App() {
         <p>
           Effects use assignment expressions (<code>=</code>, <code>+=</code>, etc.) on
           properties reachable from a role. The runtime walks the picked action's effect
-          list after step 3, calling{' '}
-          <code>updateEntityProperty</code> on the adapter for each. The host's world is
-          now different, and the next <code>selectAction</code> will see the new state.
+          list after step 3, calling <code>updateEntityProperty</code> on the host's
+          adapter for each statement. The host's world is now different, and the next{' '}
+          <code>selectAction</code> will see the new state.
         </p>
+        <p>
+          Nothing in the host needs to change for stage 3. The adapter we wrote back in
+          stage 1 already declares <code>updateEntityProperty</code>; it sat dormant
+          because <code>greet</code> had no effects. Here is the callback the runtime is
+          calling for us:
+        </p>
+        <HighlightedTs code={HOST_ADAPTER} />
       </section>
 
       <section className="prose">

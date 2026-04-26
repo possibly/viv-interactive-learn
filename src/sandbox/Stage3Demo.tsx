@@ -650,30 +650,60 @@ function renderStepBody(
                 </ul>
               )}
               <div className="world-diff">
-                <div className="world-diff-label">World after</div>
-                <div className="roster-chips">
-                  {STAGE2_CHARACTERS.map((c) => {
-                    const before = d.before[c.id]
-                    const after = d.after[c.id]
-                    const changed = before && after && before.cheerful !== after.cheerful
-                    const isCheerful = after?.cheerful ?? false
-                    return (
-                      <div key={c.id} className={`chip${changed ? ' chip-changed' : ''}`}>
-                        {c.name}
-                        <span
-                          className={`chip-trait ${isCheerful ? 'trait-yes' : 'trait-no'}`}
-                        >
-                          {isCheerful ? 'cheerful' : 'grumpy'}
-                        </span>
-                        {changed && (
-                          <span className="chip-diff">
-                            ({before!.cheerful ? 'cheerful' : 'grumpy'} →{' '}
-                            {after!.cheerful ? 'cheerful' : 'grumpy'})
-                          </span>
-                        )}
-                      </div>
-                    )
-                  })}
+                <div className="world-diff-grid">
+                  <div className="world-diff-col">
+                    <div className="world-diff-label">World before</div>
+                    <div className="roster-chips">
+                      {STAGE2_CHARACTERS.map((c) => {
+                        const before = d.before[c.id]
+                        const after = d.after[c.id]
+                        const changed =
+                          before && after && before.cheerful !== after.cheerful
+                        const isCheerful = before?.cheerful ?? false
+                        return (
+                          <div
+                            key={c.id}
+                            className={`chip${changed ? ' chip-changed' : ''}`}
+                          >
+                            {c.name}
+                            <span
+                              className={`chip-trait ${isCheerful ? 'trait-yes' : 'trait-no'}`}
+                            >
+                              {isCheerful ? 'cheerful' : 'grumpy'}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <div className="world-diff-arrow" aria-hidden="true">
+                    →
+                  </div>
+                  <div className="world-diff-col">
+                    <div className="world-diff-label">World after</div>
+                    <div className="roster-chips">
+                      {STAGE2_CHARACTERS.map((c) => {
+                        const before = d.before[c.id]
+                        const after = d.after[c.id]
+                        const changed =
+                          before && after && before.cheerful !== after.cheerful
+                        const isCheerful = after?.cheerful ?? false
+                        return (
+                          <div
+                            key={c.id}
+                            className={`chip${changed ? ' chip-changed' : ''}`}
+                          >
+                            {c.name}
+                            <span
+                              className={`chip-trait ${isCheerful ? 'trait-yes' : 'trait-no'}`}
+                            >
+                              {isCheerful ? 'cheerful' : 'grumpy'}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
