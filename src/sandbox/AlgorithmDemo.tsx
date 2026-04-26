@@ -386,10 +386,19 @@ function renderStepBody(step: number, d: DemoState): React.ReactNode {
       return (
         <>
           <p>
-            For each candidate action, ask the host adapter "who's nearby?" via{' '}
-            <code>getEntityIDs(EntityType.Character, locationID)</code>, and form one
-            casting attempt per combination.
+            For each candidate action, the runtime needs to fill the remaining roles.
+            <strong> By default it draws candidates from entities at the same location as
+            the initiator</strong> -- the viv file doesn't declare anything about location;
+            this is just the runtime's default behaviour for character roles. Everyone in
+            our tavern is in the same room, so for Alice the candidates for{' '}
+            <code>@friend</code> are simply Bob and Carol.
           </p>
+          <p className="dim">
+            (If you wanted a role to consider entities anywhere in the world, you'd opt out
+            in the viv file with <code>as: character, anywhere</code>. We don't need that
+            here.)
+          </p>
+          <p>Each candidate becomes one casting attempt:</p>
           <ul className="bare">
             {d.attempts.map((a, i) => (
               <li key={i}>
@@ -428,9 +437,13 @@ function renderStepBody(step: number, d: DemoState): React.ReactNode {
       return (
         <>
           <p>
-            Pick uniformly from the passing attempts, run the action's effects, save the
-            action record, and -- because we're integrated with the host -- watch the
-            chronicle update.
+            Pick one of the passing attempts at random.{' '}
+            <strong>It's uniform: every attempt has the same chance</strong> -- a fair
+            (1/{d.attempts.filter((a) => a.conditionsPassed).length || 1}) coin toss across
+            the candidates above. (Later stages introduce <code>importance</code> and{' '}
+            <code>saliences</code>, which let you bias which attempts are picked. Stage 1
+            doesn't declare either, so the distribution stays flat.) Then run the action's
+            effects, save the action record, and the chronicle updates.
           </p>
           <p>
             Picked: <code>{e.actionName}</code> with{' '}
