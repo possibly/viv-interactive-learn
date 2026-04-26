@@ -1,8 +1,4 @@
 // Stage 1: three friends, one action.
-//
-// The simplest possible Viv: one action, two roles, and a way to
-// describe what happened. No conditions, no effects, no mood --
-// `greet` always succeeds and just records itself in the chronicle.
 
 action greet:
     report: '{@greeter.name} says hello to {@friend.name}'

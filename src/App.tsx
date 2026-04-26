@@ -6,9 +6,7 @@ const VIV_SOURCE_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
 
 const HOST_WORLD = `// The host owns the world. Plain objects, nothing here knows
 // about Viv yet. Three friends with an id, a name, and a
-// location. The Viv runtime always reads location (it checks
-// role-presence by comparing locations), so we put everyone
-// in the same room: a tavern.
+// location. They're all in the same room: a tavern.
 
 const entities = {
   alice: { id: "alice", name: "Alice", location: "tavern" },
@@ -29,8 +27,7 @@ initializeVivRuntime({ contentBundle, adapter });
 
 // The game loop: hand selectAction one character at a time.
 // Everything else (which action, which cast, which effects) is the
-// runtime's job. This is the entire mental model you need to keep
-// in your head while writing Viv.
+// runtime's job.
 
 while (true) {
   for (const character of characters) {
@@ -91,6 +88,21 @@ export default function App() {
           <code>location</code> (the tavern they're all in). You'd add fields here as you
           grow the game, like mood, inventory, or memories.
         </p>
+        <aside className="callout">
+          <p>
+            Viv has a few built-in <strong>entity types</strong> (characters, items,
+            locations, actions), and a <code>location</code> property is expected on every
+            entity. See{' '}
+            <a
+              href="https://viv.sifty.studio/reference/language/05-entities-and-symbols/#entity-types"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Entities and symbols &rsaquo; Entity types
+            </a>{' '}
+            in the language reference.
+          </p>
+        </aside>
       </section>
 
       <section className="prose">
@@ -122,8 +134,7 @@ export default function App() {
         <p>
           The <code>adapter</code> referenced in <code>initializeVivRuntime</code> is the
           small bridge that lets the runtime read and write our entities through callbacks
-          (<code>getEntityIDs</code>, <code>updateEntityProperty</code>, and friends). The
-          interesting line is the <code>await</code>.
+          (<code>getEntityIDs</code>, <code>updateEntityProperty</code>, and friends).
         </p>
       </section>
 
