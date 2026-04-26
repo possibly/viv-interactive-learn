@@ -502,6 +502,61 @@ pre.code code {
   margin-top: 14px;
   flex-wrap: wrap;
 }
+
+.effects-panel {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+.effects-panel h5 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.effects-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.effects-list li code {
+  font-size: 12.5px;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+.world-diff {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+.world-diff-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.chip-changed {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.chip-diff {
+  margin-left: 8px;
+  font-size: 11px;
+  color: var(--accent);
+  font-style: italic;
+}
 .step-reroll button {
   font: inherit;
   font-weight: 500;

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import AlgorithmDemo from './sandbox/AlgorithmDemo'
 import Stage2Demo from './sandbox/Stage2Demo'
+import Stage3Demo from './sandbox/Stage3Demo'
 import { HighlightedTs, HighlightedViv } from './sandbox/highlight'
 
 const STAGE1_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
 const STAGE2_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage2.viv`
+const STAGE3_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage3.viv`
 
 const HOST_WORLD = `// The host owns the world. Plain objects, nothing here knows
 // about Viv yet. Three friends with an id, a name, and a
@@ -51,17 +53,20 @@ const entities = {
 export default function App() {
   const [stage1Source, setStage1Source] = useState<string>('Loading...')
   const [stage2Source, setStage2Source] = useState<string>('Loading...')
+  const [stage3Source, setStage3Source] = useState<string>('Loading...')
 
   useEffect(() => {
     let cancelled = false
     void Promise.all([
       fetch(STAGE1_VIV_PATH).then((r) => r.text()),
       fetch(STAGE2_VIV_PATH).then((r) => r.text()),
+      fetch(STAGE3_VIV_PATH).then((r) => r.text()),
     ])
-      .then(([s1, s2]) => {
+      .then(([s1, s2, s3]) => {
         if (cancelled) return
         setStage1Source(s1)
         setStage2Source(s2)
+        setStage3Source(s3)
       })
       .catch(() => {})
     return () => {
@@ -210,6 +215,47 @@ export default function App() {
       </section>
 
       <Stage2Demo />
+
+      <section className="prose">
+        <h2>Stage 3: actions that change the world</h2>
+        <p>
+          Conditions read the world. The other half of an action is{' '}
+          <a
+            href="https://viv.sifty.studio/reference/language/10-actions/#effects"
+            target="_blank"
+            rel="noreferrer"
+          >
+            effects
+          </a>
+          : statements that fire when the action is picked, mutating entity properties on
+          the host's side.
+        </p>
+        <p>
+          We'll add two more actions. <code>tease</code> makes the target grumpy.{' '}
+          <code>cheer_up</code> only applies to grumpy targets, and makes them cheerful
+          again.
+        </p>
+        <HighlightedViv code={stage3Source} />
+        <p>
+          Effects use assignment expressions (<code>=</code>, <code>+=</code>, etc.) on
+          properties reachable from a role. The runtime walks the picked action's effect
+          list after step 3, calling{' '}
+          <code>updateEntityProperty</code> on the adapter for each. The host's world is
+          now different, and the next <code>selectAction</code> will see the new state.
+        </p>
+      </section>
+
+      <section className="prose">
+        <h2>What step 4 looks like now</h2>
+        <p>
+          Step 4 still picks one passing cast at random, but it also lists the picked
+          action's effect statements and shows a snapshot of the world after they ran.
+          Whichever character was touched gets an outline and a "before → after"
+          annotation.
+        </p>
+      </section>
+
+      <Stage3Demo />
 
       <footer className="page-footer">
         <p className="dim">

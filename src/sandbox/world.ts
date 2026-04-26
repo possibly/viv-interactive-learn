@@ -71,6 +71,11 @@ export function createStage2World(): WorldState {
   return state
 }
 
+export function createStage3World(): WorldState {
+  // Same starting traits as stage 2: alice ✓, bob ✗, carol ✓.
+  return createStage2World()
+}
+
 export const STAGE2_CHARACTERS: Array<{ id: UID; name: string; cheerful: boolean }> =
   CHARACTERS.map((c) => ({ ...c, cheerful: STAGE2_CHEERFUL[c.id] ?? false }))
 

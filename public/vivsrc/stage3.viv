@@ -1,0 +1,35 @@
+// Stage 3: actions that change the world.
+//
+// `tease` makes the target grumpy. `cheer_up` makes them cheerful,
+// but only if they were grumpy in the first place. `greet` is a
+// no-op control.
+
+action greet:
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+action tease:
+    report: '{@teaser.name} teases {@target.name}'
+    effects:
+        @target.cheerful = false
+    roles:
+        @teaser:
+            as: initiator
+        @target:
+            as: recipient
+
+action cheer_up:
+    report: '{@helper.name} cheers up {@target.name}'
+    conditions:
+        @target.cheerful == false
+    effects:
+        @target.cheerful = true
+    roles:
+        @helper:
+            as: initiator
+        @target:
+            as: recipient
