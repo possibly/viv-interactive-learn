@@ -1077,11 +1077,14 @@ pre.code.inline-snippet {
   .tok-label   { color: #60a5fa; }
 }
 
-/* Stage 4: importance badge on cast cards. */
+/* Stage 4: importance badge inline with card name. */
+.card-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .importance-badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 700;
@@ -1090,6 +1093,7 @@ pre.code.inline-snippet {
   border-radius: 3px;
   letter-spacing: 0.04em;
   user-select: none;
+  flex-shrink: 0;
 }
 
 /* Stage 4: lab panel for tuning importance. */
@@ -1100,6 +1104,13 @@ pre.code.inline-snippet {
   border-radius: 12px;
   background: var(--panel-bg);
   box-shadow: var(--shadow);
+}
+.lab-panel-inline {
+  margin: 14px 0 24px;
+}
+.lab-footnote {
+  margin: 8px 0 0;
+  font-size: 12px;
 }
 .lab-header h4 {
   margin: 0 0 4px;
@@ -1237,4 +1248,84 @@ pre.code.inline-snippet {
 .lab-actions button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* Stage 5: turn list (5 sequential selectAction outcomes). */
+.turn-list {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.turn-row {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.turn-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+}
+.turn-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+.turn-initiator { color: var(--text); }
+.turn-eligible,
+.turn-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.turn-eligible-label,
+.turn-pick-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.turn-action {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+}
+.turn-action-embargoed {
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+.turn-pick-name {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+.turn-pick-report {
+  flex: 1 1 200px;
+  font-family: ui-serif, Georgia, serif;
+  color: var(--text-h);
+}
+.turn-embargo-fired {
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px dashed var(--accent-border);
 }

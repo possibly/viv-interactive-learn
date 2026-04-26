@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
 import AlgorithmDemo from './sandbox/AlgorithmDemo'
+import ImportanceLab from './sandbox/ImportanceLab'
 import Stage2Demo from './sandbox/Stage2Demo'
 import Stage3Demo from './sandbox/Stage3Demo'
 import Stage4Demo from './sandbox/Stage4Demo'
+import Stage5Demo from './sandbox/Stage5Demo'
 import { HighlightedTs, HighlightedViv } from './sandbox/highlight'
 
 const STAGE1_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
 const STAGE2_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage2.viv`
 const STAGE3_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage3.viv`
 const STAGE4_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage4.viv`
+const STAGE5_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage5.viv`
 
 const HOST_WORLD = `// The host owns the world. Plain objects, nothing here knows
 // about Viv yet. Three friends with an id, a name, and a
@@ -75,11 +78,19 @@ const adapter = {
 };
 `
 
+const INITIAL_IMPORTANCE: Record<string, number> = {
+  greet: 1,
+  tease: 3,
+  cheer_up: 3,
+}
+
 export default function App() {
   const [stage1Source, setStage1Source] = useState<string>('Loading...')
   const [stage2Source, setStage2Source] = useState<string>('Loading...')
   const [stage3Source, setStage3Source] = useState<string>('Loading...')
   const [stage4Source, setStage4Source] = useState<string>('Loading...')
+  const [stage5Source, setStage5Source] = useState<string>('Loading...')
+  const [importance, setImportance] = useState<Record<string, number>>(INITIAL_IMPORTANCE)
 
   useEffect(() => {
     let cancelled = false
@@ -88,13 +99,15 @@ export default function App() {
       fetch(STAGE2_VIV_PATH).then((r) => r.text()),
       fetch(STAGE3_VIV_PATH).then((r) => r.text()),
       fetch(STAGE4_VIV_PATH).then((r) => r.text()),
+      fetch(STAGE5_VIV_PATH).then((r) => r.text()),
     ])
-      .then(([s1, s2, s3, s4]) => {
+      .then(([s1, s2, s3, s4, s5]) => {
         if (cancelled) return
         setStage1Source(s1)
         setStage2Source(s2)
         setStage3Source(s3)
         setStage4Source(s4)
+        setStage5Source(s5)
       })
       .catch(() => {})
     return () => {
@@ -314,9 +327,9 @@ export default function App() {
         <h2>Stage 4: importance steers selection</h2>
         <p>
           Step 4 has been picking uniformly: every passing cast got the same{' '}
-          <code>1/N</code> chance. Authors usually do not want that. <code>cheer_up</code>{' '}
-          is dramatically interesting; <code>greet</code> is filler. Viv expresses that
-          preference with{' '}
+          <code>1/N</code> chance. Now we want to extend our simulation: we want our
+          friends to tease and cheer each other up more often than they say hello. Viv
+          expresses that with{' '}
           <a
             href="https://viv.sifty.studio/reference/language/10-actions/#importance"
             target="_blank"
@@ -328,20 +341,59 @@ export default function App() {
           importance, so a higher number is more likely to fire.
         </p>
         <p>
-          We give each action a weight. Greeting is filler (1), teasing is moderate (3),
-          and cheering someone up is the dramatic beat we want most often (5).
+          We give greeting an importance of <strong>1</strong>, and tease and cheer_up
+          each an importance of <strong>3</strong>.
         </p>
         <HighlightedViv code={stage4Source} />
         <p>
           Nothing in the host changes for this stage. Importance lives entirely in the
-          bundle and is consumed by the runtime's picker. The demo below adds a{' '}
-          <strong>Lab</strong> panel where you can retune each action's importance with a
-          slider, see the expected distribution change live, and sample with{' '}
-          <strong>Reroll</strong> to watch the observed bar approach the expected one.
+          bundle and is consumed by the runtime's picker.
+        </p>
+        <p>
+          Drag the sliders below to retune each action's importance. The bar shows the
+          expected share of the picker's choices for the values you set.
+        </p>
+        <ImportanceLab importance={importance} setImportance={setImportance} />
+      </section>
+
+      <Stage4Demo importance={importance} />
+
+      <section className="prose">
+        <h2>Stage 5: keep an action from happening twice</h2>
+        <p>
+          With importance dialed in, our friends now tease and cheer up plenty often, but
+          they also greet whenever the picker rolls that way. We want greeting to be a
+          one-time thing: once anyone has said hello, the simulation should move on.
+        </p>
+        <p>
+          Viv expresses this with{' '}
+          <a
+            href="https://viv.sifty.studio/reference/language/10-actions/#embargoes"
+            target="_blank"
+            rel="noreferrer"
+          >
+            embargoes
+          </a>
+          : a per-action declaration that prevents the action from being targeted again
+          for some duration after it fires. An embargo carries a <code>time</code> field,
+          which is either <code>forever</code> (the action is locked out for the rest of
+          the run) or a time period like <code>3 hours</code> or <code>2 weeks</code>.
+          Time periods are measured against the host's clock, supplied through the
+          adapter's <code>getCurrentTimestamp</code> callback.
+        </p>
+        <p>
+          We give greeting a <code>forever</code> embargo. Tease and cheer_up stay
+          unrestricted.
+        </p>
+        <HighlightedViv code={stage5Source} />
+        <p>
+          The demo runs five turns, rotating through Alice, Bob, Carol, Alice, Bob and
+          calling <code>selectAction</code> once per turn. The eligible-actions strip
+          shrinks as soon as greet fires.
         </p>
       </section>
 
-      <Stage4Demo />
+      <Stage5Demo />
 
       <footer className="page-footer">
         <p className="dim">
