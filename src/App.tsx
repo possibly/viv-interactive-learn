@@ -4,12 +4,10 @@ import { HighlightedTs, HighlightedViv } from './sandbox/highlight'
 
 const VIV_SOURCE_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
 
-const HOST_CODE = `import { initializeVivRuntime, selectAction } from "viv-runtime";
-
-// The host owns the world. These are plain objects -- nothing in
-// here knows about Viv. The runtime sees them through a small
-// adapter (omitted) when it asks "who's at this location?",
-// "what's Alice's mood?", and so on.
+const HOST_WORLD = `// The host owns the world. Plain objects -- nothing here knows
+// about Viv yet. Each character has a location, a mood, anything
+// else the host wants to model. The runtime will read these later
+// through a small adapter, but for now this is just our world.
 
 const entities = {
   tavern: { id: "tavern", name: "The Crooked Tankard" },
@@ -18,13 +16,21 @@ const entities = {
   carol:  { id: "carol", name: "Carol", location: "tavern", mood: 0 },
 };
 const characters = ["alice", "bob", "carol"];
+`
 
+const HOST_WITH_VIV = `import { initializeVivRuntime, selectAction } from "viv-runtime";
+
+// ...the entities map and characters list from before...
+
+// One-time setup: tell the runtime about the compiled content bundle
+// and how to read/write our world via a small adapter (boilerplate,
+// elided here).
 initializeVivRuntime({ contentBundle, adapter });
 
-// The host's job from here: hand selectAction one character at a
-// time. Everything else (which action, which cast, which effects)
-// is the runtime's. This is the entire mental model you need to
-// keep in your head while writing Viv.
+// The game loop: hand selectAction one character at a time.
+// Everything else (which action, which cast, which effects) is the
+// runtime's job. This is the entire mental model you need to keep
+// in your head while writing Viv.
 
 while (true) {
   for (const character of characters) {
@@ -84,40 +90,56 @@ export default function App() {
       </section>
 
       <section className="prose">
-        <h2>Let's write that in Viv</h2>
+        <h2>Start with the host</h2>
         <p>
-          One action per intent. Each action declares the roles it needs cast, what its
-          effects are, and how to describe it for the chronicle. That's the whole file:
+          Building a small game like this usually begins the same way: you write a host
+          program -- your game, your prototype, your Node script -- that owns the world.
+          No DSL, no runtime, just plain objects describing what exists and where.
         </p>
-        <HighlightedViv code={vivSource} />
+        <HighlightedTs code={HOST_WORLD} />
+        <p>
+          Each character carries a <code>location</code> and a <code>mood</code>. You'd
+          add fields here as you grow the game (inventory, relationships, secrets) --
+          they're just data the host owns.
+        </p>
       </section>
 
       <section className="prose">
-        <h2>Now we need a host</h2>
+        <h2>Now bring in Viv</h2>
         <p>
-          Viv's runtime is a library, not an engine that runs on its own. A host
-          application -- your game, your prototype, your Node script -- is the thing that{' '}
-          <em>uses</em> the runtime: it owns the world state, decides whose turn it is, and
-          asks Viv "what's next?" via <code>selectAction</code>.
+          We could write each character's choices by hand: pick an action with random
+          numbers, edit the right fields, log a string, repeat. That's fine for two or
+          three actions. By the time you have ten actions, ten conditions, and characters
+          reacting to each other, you're maintaining a tangle of <code>if</code>s and
+          ad-hoc selection logic.
         </p>
         <p>
-          "Owns the world state" is the load-bearing phrase here.{' '}
-          <strong>The host decides what entities exist and what properties they have</strong>{' '}
-          -- including spatial ones like which character is where, and which item is
-          sitting on which table. The runtime never invents those; it queries the host
-          through a small adapter when it needs them. In our tavern, the host puts Alice,
-          Bob, and Carol all at one location named <code>tavern</code>; that's why
-          everyone counts as "nearby" everyone else when the runtime goes looking for role
-          candidates.
+          <strong>Viv is a small DSL for declaring what's possible</strong>; the runtime
+          decides who does what when. You write the actions once -- their roles, their
+          conditions, their effects -- and the runtime carries the picking, the casting,
+          and the bookkeeping.
         </p>
         <p>
-          A minimal host then looks like this -- the world data the runtime will read
-          from, the one initialization call, and a loop that keeps asking{' '}
-          <code>selectAction</code> for the next move:
+          For our tavern, that's one action per intent:
         </p>
-        <HighlightedTs code={HOST_CODE} />
+        <HighlightedViv code={vivSource} />
         <p>
-          That's the whole game loop. The runtime does everything else.
+          Each action declares the roles it needs cast, what its effects are, and how to
+          describe it for the chronicle. That's the whole content bundle.
+        </p>
+      </section>
+
+      <section className="prose">
+        <h2>Wire the runtime into the host</h2>
+        <p>
+          Two additions to the host: import the runtime, and let it drive the loop.
+        </p>
+        <HighlightedTs code={HOST_WITH_VIV} />
+        <p>
+          The <code>adapter</code> referenced in <code>initializeVivRuntime</code> is the
+          small bridge that lets the runtime read and write our entities through callbacks
+          (<code>getEntityIDs</code>, <code>updateEntityProperty</code>, and friends).
+          It's mostly mechanical -- the interesting line is the <code>await</code>.
         </p>
       </section>
 
