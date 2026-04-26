@@ -288,6 +288,21 @@ pre.code code {
   .sandbox-grid { grid-template-columns: 1fr; }
 }
 
+/* Narrow viewports: let the algorithm panel and its inner pieces
+   shrink below their content-driven minimums so step 1 does not
+   spill outside the viewport. */
+@media (max-width: 560px) {
+  .page { padding: 32px 16px 64px; }
+  .algo-demo { padding: 14px 12px 18px; }
+  .algo-step { padding: 10px 12px; }
+  .paper-stage { gap: 10px; }
+  .script-page { flex: 1 1 100%; min-width: 0; padding: 10px 12px; }
+  .script-source { font-size: 11.5px; }
+  .tray { flex: 1 1 100%; min-width: 0; }
+  .card { min-width: 0; padding: 8px 10px; }
+  .paper-arrow { transform: rotate(90deg); }
+}
+
 .panel {
   background: var(--bg);
   border: 1px solid var(--border);

@@ -38,6 +38,16 @@ while (true) {
 }
 `
 
+const HOST_STAGE2 = `// Same entities, with one extra field per character. Bob's having
+// a bad day; the others are not.
+
+const entities = {
+  alice: { id: "alice", name: "Alice", location: "tavern", cheerful: true  },
+  bob:   { id: "bob",   name: "Bob",   location: "tavern", cheerful: false },
+  carol: { id: "carol", name: "Carol", location: "tavern", cheerful: true  },
+};
+`
+
 export default function App() {
   const [stage1Source, setStage1Source] = useState<string>('Loading...')
   const [stage2Source, setStage2Source] = useState<string>('Loading...')
@@ -166,14 +176,15 @@ export default function App() {
         </p>
         <p>
           We'll add a second action, <code>compliment</code>, with one role condition: the
-          subject has to be cheerful. Bob's grumpy today; Alice and Carol are not.
+          subject has to be <code>cheerful</code>. The host has to set that field; the
+          runtime just reads it.
         </p>
+        <HighlightedTs code={HOST_STAGE2} />
         <HighlightedViv code={stage2Source} />
         <p>
           Conditions reference role bindings (<code>@subject</code>) and any property the
-          host stores on that entity (<code>cheerful</code>). The compiler attaches each
-          condition to the role it depends on, so the runtime evaluates it per cast, not
-          per action.
+          host stores on that entity. The compiler attaches each condition to the role it
+          depends on, so the runtime evaluates it per cast, not per action.
         </p>
       </section>
 

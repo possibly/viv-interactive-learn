@@ -95,6 +95,8 @@ export default function Stage2Demo() {
   const [chronicle, setChronicle] = useState<ChronicleEntry[]>([])
   const [initiator, setInitiator] = useState<UID>('alice')
   const [demo, setDemo] = useState<DemoState | null>(null)
+  const [runId, setRunId] = useState(0)
+  const appendNextRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -124,6 +126,8 @@ export default function Stage2Demo() {
   useEffect(() => {
     if (!vivReady || !bundle) return
     let cancelled = false
+    const append = appendNextRef.current
+    appendNextRef.current = false
     void (async () => {
       try {
         worldRef.current = createStage2World()
@@ -150,7 +154,7 @@ export default function Stage2Demo() {
             eligible,
             attempts,
           })
-          setChronicle([])
+          if (!append) setChronicle([])
           return
         }
         const rec = actionRecord(worldRef.current, actionID) as
@@ -163,7 +167,7 @@ export default function Stage2Demo() {
             eligible,
             attempts,
           })
-          setChronicle([])
+          if (!append) setChronicle([])
           return
         }
         const pickedSlots: CastSlot[] = []
@@ -198,7 +202,11 @@ export default function Stage2Demo() {
           attempts: finalAttempts,
           pickedReport: entry.report,
         })
-        setChronicle([entry])
+        if (append) {
+          setChronicle((c) => [...c, entry])
+        } else {
+          setChronicle([entry])
+        }
       } catch (e) {
         if (cancelled) return
         setVivErr(e instanceof Error ? e.message : String(e))
@@ -207,7 +215,12 @@ export default function Stage2Demo() {
     return () => {
       cancelled = true
     }
-  }, [initiator, bundle, vivReady])
+  }, [initiator, runId, bundle, vivReady])
+
+  const reroll = () => {
+    appendNextRef.current = true
+    setRunId((n) => n + 1)
+  }
 
   return (
     <div className="algo-demo">
@@ -227,6 +240,15 @@ export default function Stage2Demo() {
               ))}
             </select>
           </label>
+          <button
+            type="button"
+            className="ghost"
+            onClick={reroll}
+            disabled={!vivReady}
+            title="Re-run selectAction with the same initiator"
+          >
+            Reroll
+          </button>
         </div>
       </header>
 

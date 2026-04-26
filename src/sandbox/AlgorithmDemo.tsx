@@ -74,6 +74,8 @@ export default function AlgorithmDemo() {
   const [chronicle, setChronicle] = useState<ChronicleEntry[]>([])
   const [initiator, setInitiator] = useState<UID>('alice')
   const [demo, setDemo] = useState<DemoState | null>(null)
+  const [runId, setRunId] = useState(0)
+  const appendNextRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -103,6 +105,8 @@ export default function AlgorithmDemo() {
   useEffect(() => {
     if (!vivReady || !bundle) return
     let cancelled = false
+    const append = appendNextRef.current
+    appendNextRef.current = false
     void (async () => {
       try {
         worldRef.current = createInitialWorld()
@@ -125,7 +129,7 @@ export default function AlgorithmDemo() {
             eligible,
             attempts: evaluated,
           })
-          setChronicle([])
+          if (!append) setChronicle([])
           return
         }
         const rec = actionRecord(worldRef.current, actionID) as
@@ -138,7 +142,7 @@ export default function AlgorithmDemo() {
             eligible,
             attempts: evaluated,
           })
-          setChronicle([])
+          if (!append) setChronicle([])
           return
         }
         const pickedSlots: CastSlot[] = []
@@ -173,7 +177,11 @@ export default function AlgorithmDemo() {
           attempts: finalAttempts,
           pickedReport: entry.report,
         })
-        setChronicle([entry])
+        if (append) {
+          setChronicle((c) => [...c, entry])
+        } else {
+          setChronicle([entry])
+        }
       } catch (e) {
         if (cancelled) return
         setVivErr(e instanceof Error ? e.message : String(e))
@@ -182,7 +190,12 @@ export default function AlgorithmDemo() {
     return () => {
       cancelled = true
     }
-  }, [initiator, bundle, vivReady])
+  }, [initiator, runId, bundle, vivReady])
+
+  const reroll = () => {
+    appendNextRef.current = true
+    setRunId((n) => n + 1)
+  }
 
   return (
     <div className="algo-demo">
@@ -202,6 +215,15 @@ export default function AlgorithmDemo() {
               ))}
             </select>
           </label>
+          <button
+            type="button"
+            className="ghost"
+            onClick={reroll}
+            disabled={!vivReady}
+            title="Re-run selectAction with the same initiator"
+          >
+            Reroll
+          </button>
         </div>
       </header>
 
