@@ -75,7 +75,6 @@ export default function AlgorithmDemo() {
   const [initiator, setInitiator] = useState<UID>('alice')
   const [demo, setDemo] = useState<DemoState | null>(null)
   const [runId, setRunId] = useState(0)
-  const appendNextRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -105,8 +104,6 @@ export default function AlgorithmDemo() {
   useEffect(() => {
     if (!vivReady || !bundle) return
     let cancelled = false
-    const append = appendNextRef.current
-    appendNextRef.current = false
     void (async () => {
       try {
         worldRef.current = createInitialWorld()
@@ -129,7 +126,7 @@ export default function AlgorithmDemo() {
             eligible,
             attempts: evaluated,
           })
-          if (!append) setChronicle([])
+          setChronicle([])
           return
         }
         const rec = actionRecord(worldRef.current, actionID) as
@@ -142,7 +139,7 @@ export default function AlgorithmDemo() {
             eligible,
             attempts: evaluated,
           })
-          if (!append) setChronicle([])
+          setChronicle([])
           return
         }
         const pickedSlots: CastSlot[] = []
@@ -177,11 +174,7 @@ export default function AlgorithmDemo() {
           attempts: finalAttempts,
           pickedReport: entry.report,
         })
-        if (append) {
-          setChronicle((c) => [...c, entry])
-        } else {
-          setChronicle([entry])
-        }
+        setChronicle([entry])
       } catch (e) {
         if (cancelled) return
         setVivErr(e instanceof Error ? e.message : String(e))
@@ -193,7 +186,6 @@ export default function AlgorithmDemo() {
   }, [initiator, runId, bundle, vivReady])
 
   const reroll = () => {
-    appendNextRef.current = true
     setRunId((n) => n + 1)
   }
 
@@ -220,7 +212,7 @@ export default function AlgorithmDemo() {
             className="ghost"
             onClick={reroll}
             disabled={!vivReady}
-            title="Re-run selectAction with the same initiator"
+            title="Re-run with the same initiator and clear the chronicle"
           >
             Reroll
           </button>

@@ -170,9 +170,20 @@ export default function App() {
       <section className="prose">
         <h2>Stage 2: gating actions with conditions</h2>
         <p>
-          The runtime so far picks uniformly from every cast it can build. Real characters
-          shouldn't act on every option, an action should only fire when the world looks
-          right for it. In Viv, that's a <strong>condition</strong>.
+          Stage 1 only ever knew how to say hello. Let's extend the simulation: we want
+          our friends to do more than greet, but only some of those new actions should be
+          available at any given moment.
+        </p>
+        <p>
+          We can prevent the selection of some actions by placing{' '}
+          <a
+            href="https://viv.sifty.studio/reference/language/08-statements-and-control-flow/#conditionals"
+            target="_blank"
+            rel="noreferrer"
+          >
+            conditions
+          </a>{' '}
+          on those actions.
         </p>
         <p>
           We'll add a second action, <code>compliment</code>, with one role condition: the
