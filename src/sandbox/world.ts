@@ -5,9 +5,9 @@ import {
   type UID,
 } from '../viv'
 
-// The minimal world: three friends, no spatial state, no moods, no
-// items. The runtime queries the host through the adapter; for stage 1
-// it only ever needs to know which characters exist.
+// The minimal world: three friends in a tavern, no moods, no items.
+// The runtime queries the host through the adapter; for stage 1 it
+// only ever needs to know which characters exist.
 
 export type EntityRecord = Record<string, unknown> & {
   entityType?: EntityTypeValue
@@ -49,11 +49,9 @@ export function createInitialWorld(): WorldState {
       id: c.id,
       name: c.name,
       // `location` is one of the few fields the runtime always reads
-      // (it checks role-presence by comparing locations). Keeping it
-      // `null` for every character means "everyone's in the same
-      // unmodelled space" -- equivalent to a single shared room, but
-      // without us having to invent one yet.
-      location: null,
+      // (it checks role-presence by comparing locations). Everyone is
+      // in the tavern, so they all share the same location.
+      location: 'tavern',
     }
   }
   return state
@@ -90,9 +88,8 @@ export function makeAdapter(state: WorldState): HostAdapter {
     },
     getCurrentTimestamp: () => 0,
     getEntityIDs: (type, locationID) => {
-      // No location modelled at stage 1: when the runtime asks "who's
-      // at locationID?", we give it everyone of that type. Adapters
-      // conventionally treat an unset locationID the same way.
+      // Stage 1 has only the tavern, so when the runtime asks "who's
+      // at locationID?" we hand back everyone of that type.
       void locationID
       switch (type) {
         case EntityTypeValues.Character:

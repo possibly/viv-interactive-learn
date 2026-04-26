@@ -8,8 +8,7 @@
 //
 // We type the surface we use because the vendor file ships no .d.ts.
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error -- vendor file has no types; we declare the shape below.
+// @ts-expect-error vendor file has no types; we declare the shape below.
 import * as vivRuntime from './vendor/viv-runtime.js'
 
 export type UID = string
