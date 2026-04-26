@@ -4,10 +4,27 @@ import { HighlightedTs, HighlightedViv } from './sandbox/highlight'
 
 const VIV_SOURCE_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
 
-const HOST_LOOP = `// The host's job: hand selectAction one character at a time.
-// Everything else (which action, which cast, which effects) is the
-// runtime's. This is the entire mental model you need to keep in
-// your head while writing Viv.
+const HOST_CODE = `import { initializeVivRuntime, selectAction } from "viv-runtime";
+
+// The host owns the world. These are plain objects -- nothing in
+// here knows about Viv. The runtime sees them through a small
+// adapter (omitted) when it asks "who's at this location?",
+// "what's Alice's mood?", and so on.
+
+const entities = {
+  tavern: { id: "tavern", name: "The Crooked Tankard" },
+  alice:  { id: "alice", name: "Alice", location: "tavern", mood: 0 },
+  bob:    { id: "bob",   name: "Bob",   location: "tavern", mood: 0 },
+  carol:  { id: "carol", name: "Carol", location: "tavern", mood: 0 },
+};
+const characters = ["alice", "bob", "carol"];
+
+initializeVivRuntime({ contentBundle, adapter });
+
+// The host's job from here: hand selectAction one character at a
+// time. Everything else (which action, which cast, which effects)
+// is the runtime's. This is the entire mental model you need to
+// keep in your head while writing Viv.
 
 while (true) {
   for (const character of characters) {
@@ -94,11 +111,11 @@ export default function App() {
           candidates.
         </p>
         <p>
-          There's some plumbing to set that up (a content-bundle import, a small adapter
-          telling the runtime how to read and write your entities), but the moving part you
-          actually keep in your head is a one-liner inside a loop:
+          A minimal host then looks like this -- the world data the runtime will read
+          from, the one initialization call, and a loop that keeps asking{' '}
+          <code>selectAction</code> for the next move:
         </p>
-        <HighlightedTs code={HOST_LOOP} />
+        <HighlightedTs code={HOST_CODE} />
         <p>
           That's the whole game loop. The runtime does everything else.
         </p>

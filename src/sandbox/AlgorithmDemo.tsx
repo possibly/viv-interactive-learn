@@ -388,19 +388,13 @@ function renderStepBody(step: number, d: DemoState): React.ReactNode {
           <p>
             For each candidate action, the runtime needs to fill the remaining roles. By
             default it draws candidates from entities at the same location as the
-            initiator. <strong>Location isn't a Viv concept</strong> -- it's a plain
-            property the host attaches to each character entity, and the runtime queries
-            it through the adapter:
+            initiator -- and recall from the host snippet above that all three regulars
+            are pinned to <code>location: "tavern"</code>. <strong>Location isn't a Viv
+            concept</strong>; it's a plain property the host attaches to each entity, and
+            the runtime queries it through the adapter.
           </p>
-          <pre className="code lang-ts inline-snippet">
-            <code>{`// host state, set up before any selectAction call
-entities.alice = { id: "alice", location: "tavern", mood: 0, ... }
-entities.bob   = { id: "bob",   location: "tavern", mood: 0, ... }
-entities.carol = { id: "carol", location: "tavern", mood: 0, ... }`}</code>
-          </pre>
           <p>
-            All three regulars are at <code>tavern</code>, so for Alice the candidates for{' '}
-            <code>@friend</code> are simply Bob and Carol.
+            So for Alice the candidates for <code>@friend</code> are simply Bob and Carol.
           </p>
           <p className="dim">
             (If you wanted a role to consider entities anywhere in the world regardless of
