@@ -1,3 +1,5 @@
+*, *::before, *::after { box-sizing: border-box; }
+
 :root {
   --text: #4d4856;
   --text-h: #08060d;
@@ -294,7 +296,7 @@ pre.code code {
 @media (max-width: 720px) {
   .page { padding: 32px 16px 64px; }
   .algo-demo { padding: 14px 12px 18px; }
-  .algo-step { padding: 10px 12px; overflow-x: hidden; }
+  .algo-step { padding: 10px 12px; }
   .step-body { min-width: 0; }
   .paper-stage { gap: 10px; }
   .paper-stage.stage-step-1 { flex-direction: column; align-items: stretch; }
@@ -481,15 +483,35 @@ pre.code code {
 }
 .algo-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
 .algo-controls button:hover:not(:disabled) { filter: brightness(1.08); }
-.algo-controls button.ghost {
+.algo-controls button.ghost,
+.step-reroll button.ghost {
   background: transparent;
   color: var(--accent);
   border-color: var(--accent);
 }
-.algo-controls button.ghost:hover:not(:disabled) {
+.algo-controls button.ghost:hover:not(:disabled),
+.step-reroll button.ghost:hover:not(:disabled) {
   background: var(--accent-bg);
   filter: none;
 }
+
+.step-reroll {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.step-reroll button {
+  font: inherit;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  cursor: pointer;
+}
+.step-reroll button:disabled { opacity: 0.5; cursor: not-allowed; }
 .algo-state { font-size: 13px; }
 
 .algo-steps {

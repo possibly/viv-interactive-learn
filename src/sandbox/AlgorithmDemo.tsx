@@ -5,7 +5,6 @@ import {
   createInitialWorld,
   makeAdapter,
   type ChronicleEntry,
-  type WorldState,
 } from './world'
 
 // Walks the user through what selectAction does internally for the
@@ -34,7 +33,7 @@ interface CastSlot {
   role: string
   characterID: UID
   name: string
-  locked?: boolean // true for the initiator slot (precast)
+  locked?: boolean
 }
 
 interface CastAttempt {
@@ -67,50 +66,30 @@ const CHARACTERS: Array<{ id: UID; name: string }> = [
 ]
 
 export default function AlgorithmDemo() {
-  const [bundle, setBundle] = useState<Bundle | null>(null)
-  const [vivErr, setVivErr] = useState<string | null>(null)
-  const [vivReady, setVivReady] = useState(false)
-  const worldRef = useRef<WorldState>(createInitialWorld())
+  const bundleRef = useRef<Promise<Bundle> | null>(null)
   const [chronicle, setChronicle] = useState<ChronicleEntry[]>([])
   const [initiator, setInitiator] = useState<UID>('alice')
   const [demo, setDemo] = useState<DemoState | null>(null)
+  const [vivErr, setVivErr] = useState<string | null>(null)
   const [runId, setRunId] = useState(0)
+  const [vivReady, setVivReady] = useState(false)
 
   useEffect(() => {
     let cancelled = false
     void (async () => {
       try {
-        const [viv, bundleJson] = await Promise.all([
-          loadViv(),
-          fetch(`${import.meta.env.BASE_URL}bundles/stage1.json`).then((r) => r.json()),
-        ])
+        if (!bundleRef.current) {
+          bundleRef.current = fetch(`${import.meta.env.BASE_URL}bundles/stage1.json`)
+            .then((r) => r.json())
+        }
+        const bundle = (await bundleRef.current) as Bundle
         if (cancelled) return
-        viv.initializeVivRuntime({
-          contentBundle: bundleJson,
-          adapter: makeAdapter(worldRef.current),
-        })
-        setBundle(bundleJson)
-        setVivReady(true)
-      } catch (e) {
-        if (cancelled) return
-        setVivErr(e instanceof Error ? e.message : String(e))
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
-  useEffect(() => {
-    if (!vivReady || !bundle) return
-    let cancelled = false
-    void (async () => {
-      try {
-        worldRef.current = createInitialWorld()
+        const world = createInitialWorld()
         const viv = await loadViv()
         viv.initializeVivRuntime({
           contentBundle: bundle,
-          adapter: makeAdapter(worldRef.current),
+          adapter: makeAdapter(world),
         })
 
         const eligible = computeEligible(bundle)
@@ -119,62 +98,56 @@ export default function AlgorithmDemo() {
 
         const actionID = await viv.selectAction({ initiatorID: initiator })
         if (cancelled) return
-        if (!actionID) {
-          setDemo({
-            initiator,
-            initiatorName: nameOf(initiator),
-            eligible,
-            attempts: evaluated,
-          })
-          setChronicle([])
-          return
+
+        let entry: ChronicleEntry | null = null
+        let pickedReport: string | undefined
+        let finalAttempts = evaluated
+
+        if (actionID) {
+          const rec = actionRecord(world, actionID) as
+            | { name?: string; report?: string; bindings?: Record<string, UID[]> }
+            | undefined
+          if (rec) {
+            const pickedSlots: CastSlot[] = []
+            for (const [role, ids] of Object.entries(rec.bindings ?? {})) {
+              if (role === 'this') continue
+              const cid = ids[0]
+              if (!cid) continue
+              pickedSlots.push({
+                role,
+                characterID: cid,
+                name: nameOf(cid),
+                locked: role === initiatorRoleNameFor(bundle.actions[String(rec.name)]),
+              })
+            }
+            const newEntry: ChronicleEntry = {
+              actionID,
+              actionName: String(rec.name ?? '?'),
+              initiatorID: initiator,
+              report: String(rec.report ?? ''),
+            }
+            entry = newEntry
+            pickedReport = newEntry.report
+            finalAttempts = evaluated.map((a) => {
+              const sameAction = a.actionName === newEntry.actionName
+              const sameCast = pickedSlots.every((s) =>
+                a.slots.some((as) => as.role === s.role && as.characterID === s.characterID),
+              )
+              return { ...a, picked: sameAction && sameCast }
+            })
+          }
         }
-        const rec = actionRecord(worldRef.current, actionID) as
-          | { name?: string; report?: string; bindings?: Record<string, UID[]> }
-          | undefined
-        if (!rec) {
-          setDemo({
-            initiator,
-            initiatorName: nameOf(initiator),
-            eligible,
-            attempts: evaluated,
-          })
-          setChronicle([])
-          return
-        }
-        const pickedSlots: CastSlot[] = []
-        for (const [role, ids] of Object.entries(rec.bindings ?? {})) {
-          if (role === 'this') continue
-          const cid = ids[0]
-          if (!cid) continue
-          pickedSlots.push({
-            role,
-            characterID: cid,
-            name: nameOf(cid),
-            locked: role === initiatorRoleNameFor(bundle.actions[String(rec.name)]),
-          })
-        }
-        const entry: ChronicleEntry = {
-          actionID,
-          actionName: String(rec.name ?? '?'),
-          initiatorID: initiator,
-          report: String(rec.report ?? ''),
-        }
-        const finalAttempts = evaluated.map((a) => {
-          const sameAction = a.actionName === entry.actionName
-          const sameCast = pickedSlots.every((s) =>
-            a.slots.some((as) => as.role === s.role && as.characterID === s.characterID),
-          )
-          return { ...a, picked: sameAction && sameCast }
-        })
+
+        if (cancelled) return
+        setVivReady(true)
         setDemo({
           initiator,
           initiatorName: nameOf(initiator),
           eligible,
           attempts: finalAttempts,
-          pickedReport: entry.report,
+          pickedReport,
         })
-        setChronicle([entry])
+        setChronicle(entry ? [entry] : [])
       } catch (e) {
         if (cancelled) return
         setVivErr(e instanceof Error ? e.message : String(e))
@@ -183,11 +156,9 @@ export default function AlgorithmDemo() {
     return () => {
       cancelled = true
     }
-  }, [initiator, runId, bundle, vivReady])
+  }, [initiator, runId])
 
-  const reroll = () => {
-    setRunId((n) => n + 1)
-  }
+  const reroll = () => setRunId((n) => n + 1)
 
   return (
     <div className="algo-demo">
@@ -207,15 +178,6 @@ export default function AlgorithmDemo() {
               ))}
             </select>
           </label>
-          <button
-            type="button"
-            className="ghost"
-            onClick={reroll}
-            disabled={!vivReady}
-            title="Re-run with the same initiator and clear the chronicle"
-          >
-            Reroll
-          </button>
         </div>
       </header>
 
@@ -230,7 +192,11 @@ export default function AlgorithmDemo() {
                 <span className="step-num">{stepNum}</span>
                 <span className="step-title">{title}</span>
               </header>
-              {demo && <div className="step-body">{renderStepBody(stepNum, demo)}</div>}
+              {demo && (
+                <div className="step-body">
+                  {renderStepBody(stepNum, demo, stepNum === 4 ? reroll : undefined, vivReady)}
+                </div>
+              )}
             </li>
           )
         })}
@@ -337,7 +303,12 @@ function computeAttempts(
 
 // Step rendering
 
-function renderStepBody(step: number, d: DemoState): React.ReactNode {
+function renderStepBody(
+  step: number,
+  d: DemoState,
+  onReroll: (() => void) | undefined,
+  vivReady: boolean,
+): React.ReactNode {
   switch (step) {
     case 1:
       return (
@@ -496,10 +467,20 @@ function renderStepBody(step: number, d: DemoState): React.ReactNode {
               </div>
             )}
           </div>
-          <p className="dim">
-            That same line just landed in the chronicle below. Pick another character
-            above to see another outcome.
-          </p>
+          {onReroll && (
+            <div className="step-reroll">
+              <button
+                type="button"
+                className="ghost"
+                onClick={onReroll}
+                disabled={!vivReady}
+                title="Re-run with the same initiator and clear the chronicle"
+              >
+                Reroll
+              </button>
+              <span className="dim">Roll the dice again with the same initiator.</span>
+            </div>
+          )}
         </>
       )
     }
