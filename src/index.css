@@ -192,49 +192,30 @@ pre.code code {
   font-size: 14px;
 }
 
-/* Floating sandbox stage picker */
-.floating-stage-picker {
-  position: sticky;
-  top: 12px;
-  z-index: 50;
-  background: var(--panel-bg);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 6px 10px;
+/* Sandbox stage picker -- a plain dropdown that scales to mobile.
+   It's hidden when there's only one stage; the markup still renders
+   so adding stages back later is just a data change. */
+.stage-picker {
   display: flex;
   align-items: center;
-  gap: 6px;
-  box-shadow: var(--shadow);
-  width: fit-content;
-  margin: 0 auto 32px;
-  font-size: 13px;
-  flex-wrap: wrap;
-  justify-content: center;
+  gap: 8px;
+  margin: 0 0 24px;
+  font-size: 14px;
 }
-.floating-stage-picker .pill {
-  border: 0;
-  background: transparent;
-  padding: 4px 10px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--text);
-  font-family: inherit;
-}
-.floating-stage-picker .pill:hover {
-  background: var(--code-bg);
+.stage-picker label { color: var(--text-dim); }
+.stage-picker select {
+  font: inherit;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
   color: var(--text-h);
+  cursor: pointer;
 }
-.floating-stage-picker .pill.active {
-  background: var(--accent);
-  color: white;
-}
+.stage-picker.single { display: none; }
 
 /* Sandbox container */
 .sandbox-anchor {
-  position: sticky;
-  top: 60px;
-  z-index: 40;
   margin: 24px 0 48px;
 }
 
@@ -428,6 +409,181 @@ pre.code code {
   margin: 10px 0 0;
   font-size: 13px;
   text-align: center;
+}
+
+/* Algorithm walkthrough */
+.algo-demo {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 18px 18px 22px;
+  margin: 24px 0 36px;
+}
+.algo-demo-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.algo-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.algo-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+.algo-controls select {
+  font: inherit;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+.algo-controls button {
+  font: inherit;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+}
+.algo-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+.algo-controls button:hover:not(:disabled) { filter: brightness(1.08); }
+.algo-controls button.ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+.algo-state { font-size: 13px; }
+
+.algo-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.algo-step {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--bg);
+  transition: border-color 0.15s, background 0.15s;
+}
+.algo-step.next { border-color: var(--accent); background: var(--accent-bg); }
+.algo-step.done { background: var(--panel-bg); }
+.algo-step header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.step-num {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--code-bg);
+  color: var(--text-dim);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.algo-step.done .step-num { background: var(--accent); color: white; }
+.algo-step.next .step-num { background: var(--accent); color: white; }
+.step-title { font-weight: 600; color: var(--text-h); flex: 1; font-size: 14px; }
+.status {
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+.status-pending { background: var(--code-bg); color: var(--text-dim); }
+.status-next    { background: var(--accent); color: white; }
+.status-done    { background: var(--good-bg); color: var(--good); }
+
+.step-body {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--text);
+}
+.step-body p { margin: 0 0 8px; }
+.bare { list-style: none; padding-left: 0; margin: 0 0 8px; }
+.bare li { padding: 3px 0; font-size: 14px; }
+.effects li code { white-space: pre; }
+.good { color: var(--good); font-weight: 500; }
+.bad  { color: var(--error); }
+
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 8px;
+}
+.diff-table th, .diff-table td {
+  text-align: left;
+  padding: 5px 8px;
+  border-bottom: 1px dashed var(--border);
+}
+.diff-table th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+.diff-table tr:last-child td { border-bottom: 0; }
+.diff-table tr.changed { background: var(--accent-bg); }
+.diff-table .delta { color: var(--accent); font-family: var(--mono); font-size: 12px; margin-left: 4px; }
+
+.algo-verify {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
+.algo-verify h4 {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 15px;
+  color: var(--text-h);
+  margin-bottom: 6px;
+}
+.algo-verify button {
+  font: inherit;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+}
+.algo-verify button:disabled { opacity: 0.5; }
+.verify-result {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.stub {
+  opacity: 0.85;
 }
 
 /* Light highlighting on language cues -- pure CSS, no parser. */
