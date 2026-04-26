@@ -35,6 +35,12 @@ const CHARACTERS: Array<{ id: UID; name: string }> = [
   { id: 'carol', name: 'Carol' },
 ]
 
+const STAGE2_CHEERFUL: Record<UID, boolean> = {
+  alice: true,
+  bob: false,
+  carol: true,
+}
+
 export function createInitialWorld(): WorldState {
   const state: WorldState = {
     entities: {},
@@ -56,6 +62,17 @@ export function createInitialWorld(): WorldState {
   }
   return state
 }
+
+export function createStage2World(): WorldState {
+  const state = createInitialWorld()
+  for (const id of state.characters) {
+    state.entities[id].cheerful = STAGE2_CHEERFUL[id] ?? false
+  }
+  return state
+}
+
+export const STAGE2_CHARACTERS: Array<{ id: UID; name: string; cheerful: boolean }> =
+  CHARACTERS.map((c) => ({ ...c, cheerful: STAGE2_CHEERFUL[c.id] ?? false }))
 
 export function makeAdapter(state: WorldState): HostAdapter {
   return {

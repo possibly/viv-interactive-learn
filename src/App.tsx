@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import AlgorithmDemo from './sandbox/AlgorithmDemo'
+import Stage2Demo from './sandbox/Stage2Demo'
 import { HighlightedTs, HighlightedViv } from './sandbox/highlight'
 
-const VIV_SOURCE_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
+const STAGE1_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
+const STAGE2_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage2.viv`
 
 const HOST_WORLD = `// The host owns the world. Plain objects, nothing here knows
 // about Viv yet. Three friends with an id, a name, and a
@@ -37,14 +39,19 @@ while (true) {
 `
 
 export default function App() {
-  const [vivSource, setVivSource] = useState<string>('Loading...')
+  const [stage1Source, setStage1Source] = useState<string>('Loading...')
+  const [stage2Source, setStage2Source] = useState<string>('Loading...')
 
   useEffect(() => {
     let cancelled = false
-    fetch(VIV_SOURCE_PATH)
-      .then((r) => r.text())
-      .then((t) => {
-        if (!cancelled) setVivSource(t)
+    void Promise.all([
+      fetch(STAGE1_VIV_PATH).then((r) => r.text()),
+      fetch(STAGE2_VIV_PATH).then((r) => r.text()),
+    ])
+      .then(([s1, s2]) => {
+        if (cancelled) return
+        setStage1Source(s1)
+        setStage2Source(s2)
       })
       .catch(() => {})
     return () => {
@@ -116,7 +123,7 @@ export default function App() {
         <p>
           For our friends, that's a single action: someone greets someone else.
         </p>
-        <HighlightedViv code={vivSource} />
+        <HighlightedViv code={stage1Source} />
         <p>
           The action declares the two roles it needs cast (the initiator and the
           recipient) and how to describe what happened for the chronicle. No conditions,
@@ -149,6 +156,38 @@ export default function App() {
       </section>
 
       <AlgorithmDemo />
+
+      <section className="prose">
+        <h2>Stage 2: gating actions with conditions</h2>
+        <p>
+          The runtime so far picks uniformly from every cast it can build. Real characters
+          shouldn't act on every option, an action should only fire when the world looks
+          right for it. In Viv, that's a <strong>condition</strong>.
+        </p>
+        <p>
+          We'll add a second action, <code>compliment</code>, with one role condition: the
+          subject has to be cheerful. Bob's grumpy today; Alice and Carol are not.
+        </p>
+        <HighlightedViv code={stage2Source} />
+        <p>
+          Conditions reference role bindings (<code>@subject</code>) and any property the
+          host stores on that entity (<code>cheerful</code>). The compiler attaches each
+          condition to the role it depends on, so the runtime evaluates it per cast, not
+          per action.
+        </p>
+      </section>
+
+      <section className="prose">
+        <h2>What changes in <code>selectAction</code></h2>
+        <p>
+          Steps 1 and 2 are unchanged. Step 3 now does real work: each cast is checked
+          against its conditions, and any cast that fails is dropped before step 4 picks.
+          Pick a character below; the cards that fail are stamped <code>FAIL</code> and
+          fall out of the running.
+        </p>
+      </section>
+
+      <Stage2Demo />
 
       <footer className="page-footer">
         <p className="dim">

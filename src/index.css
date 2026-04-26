@@ -643,21 +643,6 @@ pre.code code {
   .card-action { background: linear-gradient(180deg, var(--panel-bg), #1f2128); }
 }
 
-/* Card entry animation. */
-@keyframes card-in {
-  from {
-    opacity: 0;
-    transform: translateY(-12px) rotate(-3deg) scale(.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) rotate(0) scale(1);
-  }
-}
-.card-in {
-  animation: card-in 320ms cubic-bezier(.2,.8,.2,1) both;
-}
-
 /* Roster of host characters. */
 .roster {
   background: var(--bg);
@@ -738,7 +723,7 @@ pre.code code {
 .slot-role { color: var(--accent); font-weight: 500; }
 .slot-chip { color: var(--text-h); font-weight: 500; }
 
-/* PASS stamp. */
+/* PASS / FAIL stamp. */
 .stamp {
   position: absolute;
   top: 8px;
@@ -755,16 +740,79 @@ pre.code code {
   background: rgba(255,255,255,.6);
   user-select: none;
 }
+.stamp-fail {
+  color: var(--error);
+  border-color: var(--error);
+}
 @media (prefers-color-scheme: dark) {
   .stamp { background: rgba(0,0,0,.25); }
 }
-@keyframes stamp-in {
-  0%   { opacity: 0; transform: rotate(-8deg) scale(2.4); }
-  60%  { opacity: 1; transform: rotate(-8deg) scale(.92); }
-  100% { opacity: 1; transform: rotate(-8deg) scale(1); }
-}
-.stamp-in { animation: stamp-in 360ms cubic-bezier(.2,1.6,.4,1) both; }
 
+/* Condition pill listed on a cast card. */
+.card-conditions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+.condition-pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 3px;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--text);
+}
+.condition-pill.condition-pass {
+  border-color: var(--good);
+  background: var(--good-bg);
+  color: var(--good);
+}
+.condition-pill.condition-fail {
+  border-color: var(--error);
+  background: var(--error-bg);
+  color: var(--error);
+}
+.condition-mark {
+  font-weight: 800;
+  font-size: 12px;
+}
+
+/* Card crumple effect for failed conditions. */
+.card-crumpled {
+  opacity: 0.55;
+  transform: rotate(-1.5deg);
+  filter: grayscale(0.4);
+}
+
+/* Cheerful badge on roster chips. */
+.chip-trait {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+.chip-trait.trait-yes {
+  color: var(--good);
+  background: var(--good-bg);
+  border: 1px solid var(--good);
+}
+.chip-trait.trait-no {
+  color: var(--bad);
+  background: rgba(180, 83, 9, 0.08);
+  border: 1px solid var(--bad);
+}
 /* "Picked" state. */
 .card-picked {
   outline: 2px solid var(--accent);
@@ -789,12 +837,6 @@ pre.code code {
   padding: 2px 8px;
   border-radius: 999px;
 }
-@keyframes ribbon-in {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.ribbon-in { animation: ribbon-in 280ms ease-out both 200ms; }
-
 /* Chronicle emission (between picked card and chronicle pile). */
 .chronicle-emit {
   display: flex;
@@ -845,23 +887,6 @@ pre.code code {
     border-color: #4a3f24;
     color: #ece1bd;
   }
-}
-
-@keyframes strip-in {
-  from { opacity: 0; transform: translateY(-12px) rotate(-1.5deg); }
-  to   { opacity: 1; transform: translateY(0) rotate(0); }
-}
-.strip-in { animation: strip-in 360ms cubic-bezier(.2,.8,.2,1) both; }
-
-/* Reduced motion: cancel everything, snap to end states. */
-@media (prefers-reduced-motion: reduce) {
-  .card-in,
-  .stamp-in,
-  .ribbon-in,
-  .strip-in {
-    animation: none !important;
-  }
-  .card-picked { transform: none; }
 }
 
 .chronicle-panel {

@@ -1,0 +1,22 @@
+// Stage 2: conditions gate which casts succeed.
+//
+// `greet` is unconditional. `compliment` only fires when the
+// recipient is cheerful.
+
+action greet:
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+action compliment:
+    report: '{@admirer.name} compliments {@subject.name}'
+    conditions:
+        @subject.cheerful == true
+    roles:
+        @admirer:
+            as: initiator
+        @subject:
+            as: recipient
