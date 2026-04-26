@@ -1,26 +1,13 @@
-// Stage 1: greeting and ordering a beer.
+// Stage 1: three friends, one action.
 //
-// Two simple actions. Anyone can greet anyone else; anyone can order a
-// beer. No conditions, so any character can do either at any time --
-// Viv just picks one of the eligible (action, cast) attempts at random.
+// The simplest possible Viv: one action, two roles, and a way to
+// describe what happened. No conditions, no effects, no mood --
+// `greet` always succeeds and just records itself in the chronicle.
 
 action greet:
-    gloss: "@greeter says hello to @friend"
-    report: '{@greeter.name} smiles and waves at {@friend.name}'
+    report: '{@greeter.name} says hello to {@friend.name}'
     roles:
         @greeter:
             as: initiator
         @friend:
             as: recipient
-    effects:
-        @greeter.mood += 5
-        @friend.mood += 5
-
-action order-beer:
-    gloss: "@drinker orders a beer"
-    report: '{@drinker.name} flags down the bartender and orders a beer'
-    roles:
-        @drinker:
-            as: initiator
-    effects:
-        @drinker.mood += 3

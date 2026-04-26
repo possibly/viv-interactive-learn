@@ -5,15 +5,15 @@ import { HighlightedTs, HighlightedViv } from './sandbox/highlight'
 const VIV_SOURCE_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
 
 const HOST_WORLD = `// The host owns the world. Plain objects -- nothing here knows
-// about Viv yet. Each character has a location, a mood, anything
-// else the host wants to model. The runtime will read these later
-// through a small adapter, but for now this is just our world.
+// about Viv yet. Three friends with an id and a name; location is
+// the one extra field the Viv runtime always reads (it checks
+// role-presence by comparing locations), so we set it to null
+// everywhere -- "no location modelled" -- and that's that.
 
 const entities = {
-  tavern: { id: "tavern", name: "The Crooked Tankard" },
-  alice:  { id: "alice", name: "Alice", location: "tavern", mood: 0 },
-  bob:    { id: "bob",   name: "Bob",   location: "tavern", mood: 0 },
-  carol:  { id: "carol", name: "Carol", location: "tavern", mood: 0 },
+  alice: { id: "alice", name: "Alice", location: null },
+  bob:   { id: "bob",   name: "Bob",   location: null },
+  carol: { id: "carol", name: "Carol", location: null },
 };
 const characters = ["alice", "bob", "carol"];
 `
@@ -82,10 +82,10 @@ export default function App() {
       <section className="prose">
         <h2>What we want our characters to do</h2>
         <p>
-          A small tavern. Three regulars -- <strong>Alice</strong>, <strong>Bob</strong>,
-          and <strong>Carol</strong> -- hang around the Crooked Tankard. We want them to be
-          able to <strong>greet each other</strong> and <strong>order beer</strong>. Either
-          one, in any order, whenever it's their turn.
+          Three friends -- <strong>Alice</strong>, <strong>Bob</strong>, and{' '}
+          <strong>Carol</strong> -- hanging out together. We want them to be able to{' '}
+          <strong>greet each other</strong>. That's the entire goal for stage 1:
+          whenever it's a character's turn, they can say hello to one of the other two.
         </p>
       </section>
 
@@ -94,24 +94,25 @@ export default function App() {
         <p>
           Building a small game like this usually begins the same way: you write a host
           program -- your game, your prototype, your Node script -- that owns the world.
-          No DSL, no runtime, just plain objects describing what exists and where.
+          No DSL, no runtime, just plain objects describing what exists.
         </p>
         <HighlightedTs code={HOST_WORLD} />
         <p>
-          Each character carries a <code>location</code> and a <code>mood</code>. You'd
-          add fields here as you grow the game (inventory, relationships, secrets) --
-          they're just data the host owns.
+          Each character has an <code>id</code>, a <code>name</code>, and a{' '}
+          <code>location</code> (set to <code>null</code> for now). You'd add fields here
+          as you grow the game -- mood, inventory, memories, an actual location -- but
+          stage 1 is deliberately bare so we can focus on what Viv adds.
         </p>
       </section>
 
       <section className="prose">
         <h2>Now bring in Viv</h2>
         <p>
-          We could write each character's choices by hand: pick an action with random
-          numbers, edit the right fields, log a string, repeat. That's fine for two or
-          three actions. By the time you have ten actions, ten conditions, and characters
-          reacting to each other, you're maintaining a tangle of <code>if</code>s and
-          ad-hoc selection logic.
+          You could write each character's choices by hand: roll a random number, hand-pick
+          a recipient, log a string, repeat. That's fine for two or three actions. By the
+          time you want ten actions, ten conditions, and characters reacting to each
+          other, you're maintaining a tangle of <code>if</code>s and ad-hoc selection
+          logic.
         </p>
         <p>
           <strong>Viv is a small DSL for declaring what's possible</strong>; the runtime
@@ -120,12 +121,13 @@ export default function App() {
           and the bookkeeping.
         </p>
         <p>
-          For our tavern, that's one action per intent:
+          For our friends, that's a single action: someone greets someone else.
         </p>
         <HighlightedViv code={vivSource} />
         <p>
-          Each action declares the roles it needs cast, what its effects are, and how to
-          describe it for the chronicle. That's the whole content bundle.
+          The action declares the two roles it needs cast (the initiator and the
+          recipient) and how to describe what happened for the chronicle. No conditions,
+          no effects -- a greet always succeeds and just records itself.
         </p>
       </section>
 
