@@ -2,24 +2,16 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { loadViv, type UID } from '../viv'
 import { createInitialWorld, makeAdapter, snapshotCharacters, type WorldState } from './world'
 
-// A guided walkthrough of what `selectAction` does internally, for the
-// stage-1 "hello" action. The user picks an initiator, then advances
-// step-by-step through:
-//
-//   1. Find eligible actions (actions whose initiator role matches)
-//   2. Cast the remaining roles from the host's nearby-entity query
-//   3. Evaluate conditions
-//   4. Pick + apply effects + save the action record
-//
-// We compute steps 1-3 ourselves from the bundle and adapter so we can
-// show the working set the runtime is examining; then we hand the same
-// scenario to `selectAction` and confirm the runtime made an equivalent
-// choice. The point is to make the algorithm legible, not to replace it.
+// Walks the user through what selectAction does internally for the
+// stage-1 storyworld. Steps 1-3 we narrate ourselves so we can expose
+// the working set the runtime is examining (eligible actions, candidate
+// casts, condition results). Step 4 hands off to the real selectAction
+// and folds the action it picked into the chronicle. The walkthrough
+// is reusable: pick another initiator and step again to add another
+// chronicle entry.
 
 interface BundleAction {
   name: string
-  gloss?: { value?: unknown }
-  report?: { value?: unknown }
   roles: Record<string, BundleRole>
   conditions: { globalConditions: unknown[]; roleConditions: Record<string, unknown[]> }
   effects: Array<{ body: { source?: { code?: string } } }>
@@ -31,57 +23,76 @@ interface BundleRole {
   precast?: boolean
   anywhere?: boolean
 }
+type Bundle = { actions: Record<string, BundleAction> }
 
 interface CastingAttempt {
+  actionName: string
   cast: Record<string, UID>
-  conditionsPassed: boolean
   conditionsCount: number
+  conditionsPassed: boolean
+}
+
+interface ChronicleEntry {
+  initiator: UID
+  actionName: string
+  cast: Record<string, UID>
+  report: string
+  effects: string[]
+  before: Record<UID, number>
+  after: Record<UID, number>
 }
 
 interface DemoState {
-  step: number // 0=not started, 1..4 = completed step
+  step: number // 0 = nothing yet, 1..4 = steps completed
   initiator: UID
   eligibleActions: string[]
   attempts: CastingAttempt[]
-  picked?: { actionName: string; cast: Record<string, UID>; effectCode: string[] }
-  beforeMoods: Record<UID, number>
-  afterMoods: Record<UID, number>
-  vivConfirmation?: { actionName: string; cast: Record<string, UID> } | 'pending' | 'failed'
+  picked?: ChronicleEntry
 }
 
 const STEP_TITLES = [
   '1. Find eligible actions',
   '2. Cast the remaining roles',
   '3. Evaluate conditions',
-  '4. Pick, apply effects, save',
+  '4. Pick, run effects, append to the chronicle',
+]
+
+const CHARACTERS: Array<{ id: UID; name: string }> = [
+  { id: 'alice', name: 'Alice' },
+  { id: 'bob', name: 'Bob' },
+  { id: 'carol', name: 'Carol' },
 ]
 
 export default function AlgorithmDemo() {
-  const [bundle, setBundle] = useState<{ actions: Record<string, BundleAction> } | null>(null)
+  const [bundle, setBundle] = useState<Bundle | null>(null)
   const [vivErr, setVivErr] = useState<string | null>(null)
+  const [vivReady, setVivReady] = useState(false)
 
-  // We keep two parallel worlds: one for our hand-narrated walk, one
-  // dedicated to the verifier so the two don't fight over runtime
-  // initialization or shared state.
-  const narrationWorldRef = useRef<WorldState>(
+  const worldRef = useRef<WorldState>(
     createInitialWorld({ initialMood: 0, withTavern: false }),
   )
-  const verifyWorldRef = useRef<WorldState>(
-    createInitialWorld({ initialMood: 0, withTavern: false }),
-  )
-
+  const [chronicle, setChronicle] = useState<ChronicleEntry[]>([])
   const [initiator, setInitiator] = useState<UID>('alice')
   const [demo, setDemo] = useState<DemoState>(() => freshDemo('alice'))
 
+  // Fetch the bundle, init the runtime once. We keep one shared world
+  // so chronicle entries accumulate across "Step another character"
+  // clicks -- the same way they would in a real loop.
   useEffect(() => {
     let cancelled = false
     void (async () => {
       try {
-        const bundleJson = await fetch(`${import.meta.env.BASE_URL}bundles/stage1.json`).then(
-          (r) => r.json(),
-        )
+        const [viv, bundleJson] = await Promise.all([
+          loadViv(),
+          fetch(`${import.meta.env.BASE_URL}bundles/stage1.json`).then((r) => r.json()),
+        ])
         if (cancelled) return
+        viv.initializeVivRuntime({
+          contentBundle: bundleJson,
+          adapter: makeAdapter(worldRef.current),
+        })
         setBundle(bundleJson)
+        setVivReady(true)
       } catch (e) {
         if (cancelled) return
         setVivErr(e instanceof Error ? e.message : String(e))
@@ -93,62 +104,83 @@ export default function AlgorithmDemo() {
   }, [])
 
   const characters = useMemo(
-    () => snapshotCharacters(narrationWorldRef.current),
-    [demo],
+    () => snapshotCharacters(worldRef.current),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [chronicle.length, demo.step],
   )
 
-  const reset = (nextInitiator: UID = initiator) => {
-    narrationWorldRef.current = createInitialWorld({ initialMood: 0, withTavern: false })
-    verifyWorldRef.current = createInitialWorld({ initialMood: 0, withTavern: false })
+  const reset = async (nextInitiator: UID = 'alice') => {
+    worldRef.current = createInitialWorld({ initialMood: 0, withTavern: false })
+    setChronicle([])
+    setInitiator(nextInitiator)
     setDemo(freshDemo(nextInitiator))
-  }
-
-  const onPickInitiator = (id: UID) => {
-    setInitiator(id)
-    reset(id)
+    // Re-init runtime against the fresh world so any internal queues
+    // are cleared too.
+    if (bundle) {
+      try {
+        const viv = await loadViv()
+        viv.initializeVivRuntime({
+          contentBundle: bundle,
+          adapter: makeAdapter(worldRef.current),
+        })
+      } catch (e) {
+        setVivErr(e instanceof Error ? e.message : String(e))
+      }
+    }
   }
 
   const advance = async () => {
     if (!bundle) return
-    setDemo((d) => stepAlgorithm(d, bundle, narrationWorldRef.current))
+    if (demo.step < 3) {
+      setDemo((d) => narrateStep(d, bundle, worldRef.current))
+      return
+    }
+    if (demo.step === 3) {
+      // Step 4: hand off to the real runtime, snapshot before/after.
+      try {
+        const viv = await loadViv()
+        const before = snapshotMoods(worldRef.current)
+        const actionID = await viv.selectAction({ initiatorID: demo.initiator })
+        if (!actionID) {
+          setDemo((d) => ({ ...d, step: 4, picked: undefined }))
+          return
+        }
+        const rec = worldRef.current.entities[actionID] as {
+          name?: string
+          report?: string
+          gloss?: string
+          bindings?: Record<string, UID[]>
+        }
+        const cast: Record<string, UID> = {}
+        for (const [k, v] of Object.entries(rec.bindings ?? {})) {
+          if (k === 'this') continue
+          if (v[0]) cast[k] = v[0]
+        }
+        const after = snapshotMoods(worldRef.current)
+        const action = bundle.actions[String(rec.name)]
+        const effects = action?.effects.map(
+          (e) => e.body.source?.code ?? '',
+        ) ?? []
+        const entry: ChronicleEntry = {
+          initiator: demo.initiator,
+          actionName: String(rec.name ?? '?'),
+          cast,
+          report: String(rec.report ?? rec.gloss ?? ''),
+          effects,
+          before,
+          after,
+        }
+        setChronicle((c) => [...c, entry])
+        setDemo((d) => ({ ...d, step: 4, picked: entry }))
+      } catch (e) {
+        setVivErr(e instanceof Error ? e.message : String(e))
+      }
+    }
   }
 
-  const verifyWithViv = async () => {
-    if (!bundle) return
-    setDemo((d) => ({ ...d, vivConfirmation: 'pending' }))
-    try {
-      const viv = await loadViv()
-      // Reset the verify-world (so we can isolate this single call) and
-      // ask the real runtime to act for the same initiator.
-      verifyWorldRef.current = createInitialWorld({ initialMood: 0, withTavern: false })
-      viv.initializeVivRuntime({
-        contentBundle: bundle,
-        adapter: makeAdapter(verifyWorldRef.current),
-      })
-      const actionID = await viv.selectAction({ initiatorID: initiator })
-      if (!actionID) {
-        setDemo((d) => ({ ...d, vivConfirmation: 'failed' }))
-        return
-      }
-      const rec = verifyWorldRef.current.entities[actionID] as {
-        name?: string
-        bindings?: Record<string, UID[]>
-      }
-      const cast: Record<string, UID> = {}
-      for (const [roleName, ids] of Object.entries(rec.bindings ?? {})) {
-        // Skip the special `this` binding the runtime adds, which points
-        // at the action record itself.
-        if (roleName === 'this') continue
-        if (ids[0]) cast[roleName] = ids[0]
-      }
-      setDemo((d) => ({
-        ...d,
-        vivConfirmation: { actionName: String(rec.name ?? '?'), cast },
-      }))
-    } catch (e) {
-      setVivErr(e instanceof Error ? e.message : String(e))
-      setDemo((d) => ({ ...d, vivConfirmation: 'failed' }))
-    }
+  const stepAnother = (nextInitiator: UID) => {
+    setInitiator(nextInitiator)
+    setDemo(freshDemo(nextInitiator))
   }
 
   return (
@@ -159,23 +191,32 @@ export default function AlgorithmDemo() {
             <span>Initiator:</span>
             <select
               value={initiator}
-              onChange={(e) => onPickInitiator(e.target.value)}
-              disabled={demo.step > 0}
+              onChange={(e) => stepAnother(e.target.value)}
+              disabled={demo.step > 0 && demo.step < 4}
             >
-              <option value="alice">Alice</option>
-              <option value="bob">Bob</option>
-              <option value="carol">Carol</option>
+              {CHARACTERS.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
             </select>
           </label>
-          <button onClick={advance} disabled={!bundle || demo.step >= 4}>
-            {demo.step === 0 ? 'Start' : demo.step >= 4 ? 'Done' : `Run step ${demo.step + 1}`}
-          </button>
-          <button className="ghost" onClick={() => reset()} disabled={demo.step === 0}>
+          {demo.step < 4 && (
+            <button onClick={advance} disabled={!vivReady}>
+              {demo.step === 0 ? 'Start' : `Run step ${demo.step + 1}`}
+            </button>
+          )}
+          {demo.step >= 4 && (
+            <button onClick={() => stepAnother(nextInitiator(initiator))} disabled={!vivReady}>
+              Step another character
+            </button>
+          )}
+          <button className="ghost" onClick={() => reset('alice')} disabled={chronicle.length === 0 && demo.step === 0}>
             Reset
           </button>
         </div>
         <div className="algo-state">
-          <span className="dim">Storyworld:</span>{' '}
+          <span className="dim">State:</span>{' '}
           {characters
             .map((c) => `${c.name} (mood ${c.mood as number})`)
             .join(' · ')}
@@ -204,104 +245,103 @@ export default function AlgorithmDemo() {
         })}
       </ol>
 
-      {demo.step >= 4 && (
-        <div className="algo-verify">
-          <h4>Cross-check with the actual Viv runtime</h4>
+      <div className="chronicle-panel">
+        <h4>
+          Chronicle <span className="dim">({chronicle.length})</span>
+        </h4>
+        {chronicle.length === 0 ? (
           <p className="dim">
-            We just walked the algorithm by hand. Let's hand the exact same scenario to the
-            real <code>selectAction</code> and see what it does.
+            Empty so far. Walk through the four steps for at least one character to see the
+            first entry the runtime appends.
           </p>
-          <button onClick={verifyWithViv} disabled={demo.vivConfirmation === 'pending'}>
-            {demo.vivConfirmation === 'pending'
-              ? 'Asking runtime...'
-              : 'Run selectAction({ initiatorID })'}
-          </button>
-          {demo.vivConfirmation && demo.vivConfirmation !== 'pending' && (
-            <div className="verify-result">
-              {demo.vivConfirmation === 'failed' ? (
-                <p className="bad">Runtime returned no action -- something's off.</p>
-              ) : (
-                <>
-                  <p>
-                    Runtime picked <code>{demo.vivConfirmation.actionName}</code> with cast:{' '}
-                    {Object.entries(demo.vivConfirmation.cast)
-                      .map(([r, id]) => `@${r} = ${id}`)
-                      .join(', ')}
-                  </p>
-                  <p className="dim">
-                    Same action, possibly a different friend pick -- both castings were
-                    eligible and the choice between them is uniformly random.
-                  </p>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+        ) : (
+          <ol className="chronicle">
+            {chronicle.map((c, i) => (
+              <li key={i}>
+                <span className="action-name">{c.actionName}</span>{' '}
+                <span className="report">{c.report}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
     </div>
   )
 }
 
-// ---- Algorithm narration ---------------------------------------------
+// ---- Helpers ---------------------------------------------------------
 
 function freshDemo(initiator: UID): DemoState {
-  return {
-    step: 0,
-    initiator,
-    eligibleActions: [],
-    attempts: [],
-    beforeMoods: {},
-    afterMoods: {},
-  }
+  return { step: 0, initiator, eligibleActions: [], attempts: [] }
 }
 
-function stepAlgorithm(
-  d: DemoState,
-  bundle: { actions: Record<string, BundleAction> },
-  world: WorldState,
-): DemoState {
+function snapshotMoods(w: WorldState): Record<UID, number> {
+  const out: Record<UID, number> = {}
+  for (const cid of w.characters) out[cid] = w.entities[cid].mood as number
+  return out
+}
+
+function nextInitiator(current: UID): UID {
+  const order = CHARACTERS.map((c) => c.id)
+  const i = order.indexOf(current)
+  return order[(i + 1) % order.length]
+}
+
+function narrateStep(d: DemoState, bundle: Bundle, world: WorldState): DemoState {
   switch (d.step) {
     case 0: {
-      // Step 1: find every action where this character could be initiator.
-      // For stage 1, the @greeter role is the initiator role of `hello`.
+      // Step 1: find every action where this character could be the initiator.
       const eligible: string[] = []
       for (const [name, action] of Object.entries(bundle.actions)) {
         const initiatorRole = Object.values(action.roles).find(
-          (r) => r.participationMode === 'initiator' || (r as { name: string }).name === 'greeter',
+          (r) => r.participationMode === 'initiator',
         )
         if (initiatorRole) eligible.push(name)
       }
       return { ...d, step: 1, eligibleActions: eligible }
     }
     case 1: {
-      // Step 2: for each eligible action, cast the remaining roles by
-      // asking the host adapter for nearby characters/items. For stage 1
-      // the only non-initiator role on `hello` is @friend (recipient,
-      // character, present at location).
+      // Step 2: for each eligible action, ask the host adapter for
+      // candidates for the remaining roles. Only character roles
+      // appear in stage 1.
       const attempts: CastingAttempt[] = []
+      const initiatorLoc = world.entities[d.initiator].location as UID
       for (const actionName of d.eligibleActions) {
-        // We only have one action (`hello`) at stage 1, but the loop is
-        // structured to mirror what the runtime does for every eligible
-        // action: ask the host for nearby characters and form one cast
-        // per candidate.
-        void bundle.actions[actionName]
-        const initiatorLoc = world.entities[d.initiator].location as UID
+        const action = bundle.actions[actionName]
+        const otherCharacterRoles = Object.values(action.roles).filter(
+          (r) => r.participationMode && r.participationMode !== 'initiator',
+        )
+        if (otherCharacterRoles.length === 0) {
+          attempts.push({
+            actionName,
+            cast: { [initiatorRoleNameFor(action)]: d.initiator },
+            conditionsCount: 0,
+            conditionsPassed: true,
+          })
+          continue
+        }
+        // Stage 1 has at most one extra character role per action.
+        const otherRole = otherCharacterRoles[0]
         const candidates = world.characters.filter(
           (cid) => cid !== d.initiator && world.entities[cid].location === initiatorLoc,
         )
-        for (const friend of candidates) {
+        for (const partner of candidates) {
           attempts.push({
-            cast: { greeter: d.initiator, friend },
-            conditionsPassed: true,
+            actionName,
+            cast: {
+              [initiatorRoleNameFor(action)]: d.initiator,
+              [otherRole.name]: partner,
+            },
             conditionsCount: 0,
+            conditionsPassed: true,
           })
         }
       }
       return { ...d, step: 2, attempts }
     }
     case 2: {
-      // Step 3: evaluate conditions. `hello` has none, so every cast
-      // passes. We still mark the count so the panel can say so honestly.
+      // Step 3: stage 1's actions have no conditions. Mark every
+      // attempt as passing and surface the count for honesty.
       const attempts = d.attempts.map((a) => ({
         ...a,
         conditionsPassed: true,
@@ -309,36 +349,16 @@ function stepAlgorithm(
       }))
       return { ...d, step: 3, attempts }
     }
-    case 3: {
-      // Step 4: pick uniformly from passing attempts, run effects,
-      // record the action.
-      const passing = d.attempts.filter((a) => a.conditionsPassed)
-      if (passing.length === 0) return { ...d, step: 4 }
-      const pick = passing[Math.floor(Math.random() * passing.length)]
-      const action = Object.values(bundle.actions)[0]
-      const effectCode = action.effects.map(
-        (e) => e.body.source?.code ?? '(unknown effect)',
-      )
-      // Apply locally to our narration world so the state panel updates.
-      const before: Record<UID, number> = {}
-      const after: Record<UID, number> = {}
-      for (const cid of world.characters) before[cid] = world.entities[cid].mood as number
-      const greeter = world.entities[pick.cast.greeter] as { mood: number }
-      const friend = world.entities[pick.cast.friend] as { mood: number }
-      greeter.mood = (greeter.mood ?? 0) + 5
-      friend.mood = (friend.mood ?? 0) + 5
-      for (const cid of world.characters) after[cid] = world.entities[cid].mood as number
-      return {
-        ...d,
-        step: 4,
-        picked: { actionName: action.name, cast: pick.cast, effectCode },
-        beforeMoods: before,
-        afterMoods: after,
-      }
-    }
     default:
       return d
   }
+}
+
+function initiatorRoleNameFor(action: BundleAction): string {
+  return (
+    Object.values(action.roles).find((r) => r.participationMode === 'initiator')?.name ??
+    'initiator'
+  )
 }
 
 // ---- Step rendering --------------------------------------------------
@@ -349,8 +369,9 @@ function renderStepBody(step: number, d: DemoState): React.ReactNode {
       return (
         <>
           <p>
-            Looking through the bundle for actions that have an{' '}
-            <code>initiator</code> role this character can fill.
+            Look through the bundle for actions where this character can fill the{' '}
+            <code>initiator</code> role. With ten actions defined we'd see ten candidates
+            here, each waiting for casting.
           </p>
           <ul className="bare">
             {d.eligibleActions.map((name) => (
@@ -359,26 +380,23 @@ function renderStepBody(step: number, d: DemoState): React.ReactNode {
               </li>
             ))}
           </ul>
-          <p className="dim">
-            (Stage 1 only ships one action, so this is the entire menu. With ten actions
-            we'd see ten candidates here, each waiting for casting.)
-          </p>
         </>
       )
     case 2:
       return (
         <>
           <p>
-            For each candidate action, ask the host adapter "who's nearby and could fill the
-            other roles?" The runtime calls{' '}
-            <code>getEntityIDs(EntityType.Character, locationID)</code>, then forms one
+            For each candidate action, ask the host adapter "who's nearby?" via{' '}
+            <code>getEntityIDs(EntityType.Character, locationID)</code>, and form one
             casting attempt per combination.
           </p>
           <ul className="bare">
             {d.attempts.map((a, i) => (
               <li key={i}>
-                <code>hello</code>: @greeter = {a.cast.greeter}, @friend ={' '}
-                <strong>{a.cast.friend}</strong>
+                <code>{a.actionName}</code>:{' '}
+                {Object.entries(a.cast)
+                  .map(([role, id]) => `@${role} = ${id}`)
+                  .join(', ')}
               </li>
             ))}
           </ul>
@@ -388,40 +406,50 @@ function renderStepBody(step: number, d: DemoState): React.ReactNode {
       return (
         <>
           <p>
-            Run each attempt's conditions. If a condition fails, the attempt is discarded.{' '}
-            <code>hello</code> has no conditions, so:
+            Run each attempt's conditions. Failing attempts are discarded. Stage 1's
+            actions don't define any conditions, so every attempt passes.
           </p>
           <ul className="bare">
             {d.attempts.map((a, i) => (
               <li key={i}>
-                @friend = <strong>{a.cast.friend}</strong> →{' '}
-                <span className="good">passed</span> ({a.conditionsCount} conditions)
+                <code>{a.actionName}</code> →{' '}
+                {Object.entries(a.cast)
+                  .map(([role, id]) => `@${role} = ${id}`)
+                  .join(', ')}{' '}
+                → <span className="good">passed</span> ({a.conditionsCount} conditions)
               </li>
             ))}
           </ul>
         </>
       )
-    case 4:
+    case 4: {
       if (!d.picked) return <p>No casting attempt passed. Nothing happens.</p>
+      const e = d.picked
       return (
         <>
           <p>
-            Pick one of the passing attempts at random, run its effects, then save the action
-            record so the chronicle (and downstream story sifting) can see it.
+            Pick uniformly from the passing attempts, run the action's effects, save the
+            action record, and -- because we're integrated with the host -- watch the
+            chronicle update.
           </p>
           <p>
-            Picked: <code>{d.picked.actionName}</code> with @greeter ={' '}
-            <strong>{d.picked.cast.greeter}</strong>, @friend ={' '}
-            <strong>{d.picked.cast.friend}</strong>
+            Picked: <code>{e.actionName}</code> with{' '}
+            {Object.entries(e.cast)
+              .map(([role, id]) => `@${role} = ${id}`)
+              .join(', ')}
           </p>
-          <p>Effects:</p>
-          <ul className="bare effects">
-            {d.picked.effectCode.map((c, i) => (
-              <li key={i}>
-                <code>{c}</code>
-              </li>
-            ))}
-          </ul>
+          {e.effects.length > 0 && (
+            <>
+              <p>Effects:</p>
+              <ul className="bare effects">
+                {e.effects.map((c, i) => (
+                  <li key={i}>
+                    <code>{c}</code>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
           <table className="diff-table">
             <thead>
               <tr>
@@ -431,9 +459,9 @@ function renderStepBody(step: number, d: DemoState): React.ReactNode {
               </tr>
             </thead>
             <tbody>
-              {Object.keys(d.beforeMoods).map((cid) => {
-                const b = d.beforeMoods[cid]
-                const a = d.afterMoods[cid]
+              {Object.keys(e.before).map((cid) => {
+                const b = e.before[cid]
+                const a = e.after[cid]
                 const changed = a !== b
                 return (
                   <tr key={cid} className={changed ? 'changed' : ''}>
@@ -449,8 +477,14 @@ function renderStepBody(step: number, d: DemoState): React.ReactNode {
               })}
             </tbody>
           </table>
+          <p className="dim">
+            That last line of the chronicle below was written by the runtime via the
+            adapter's <code>saveActionData</code>. Pick another initiator and step again
+            to add to it.
+          </p>
         </>
       )
+    }
     default:
       return null
   }

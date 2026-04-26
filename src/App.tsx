@@ -1,14 +1,36 @@
-import { useMemo, useState } from 'react'
-import Sandbox from './sandbox/Sandbox'
+import { useEffect, useState } from 'react'
 import AlgorithmDemo from './sandbox/AlgorithmDemo'
-import { STAGES } from './sandbox/stages'
+import { HighlightedTs, HighlightedViv } from './sandbox/highlight'
+
+const VIV_SOURCE_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
+
+const HOST_LOOP = `// The host's job: hand selectAction one character at a time.
+// Everything else (which action, which cast, which effects) is the
+// runtime's. This is the entire mental model you need to keep in
+// your head while writing Viv.
+
+while (true) {
+  for (const character of characters) {
+    await selectAction({ initiatorID: character });
+  }
+}
+`
 
 export default function App() {
-  const [activeStageId, setActiveStageId] = useState<number>(STAGES[0].id)
-  const activeStage = useMemo(
-    () => STAGES.find((s) => s.id === activeStageId) ?? STAGES[0],
-    [activeStageId],
-  )
+  const [vivSource, setVivSource] = useState<string>('Loading...')
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(VIV_SOURCE_PATH)
+      .then((r) => r.text())
+      .then((t) => {
+        if (!cancelled) setVivSource(t)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <div className="page">
@@ -18,8 +40,8 @@ export default function App() {
         </h1>
         <p className="lede">
           Viv is a small DSL and runtime for <em>emergent narrative</em>. You declare what
-          characters can do; the runtime decides who does what, when, and what fell out of it.
-          This page is a guided walk through the authoring layer, starting from the
+          characters can do; the runtime decides who does what, when, and what fell out of
+          it. This page is a guided walk through the authoring layer, starting from the
           smallest possible thing and growing.
         </p>
         <p className="meta">
@@ -35,74 +57,62 @@ export default function App() {
       </header>
 
       <section className="prose">
-        <h2>What we're building</h2>
+        <h2>What we want our characters to do</h2>
         <p>
-          A small tavern. Three regulars -- <strong>Alice</strong>, <strong>Bob</strong>, and{' '}
-          <strong>Carol</strong> -- hang around the Crooked Tankard. Each tick we ask Viv:
-          "given everything you know, what would <em>this</em> character plausibly do right
-          now?" The runtime's answer comes from a four-step process:
+          A small tavern. Three regulars -- <strong>Alice</strong>, <strong>Bob</strong>,
+          and <strong>Carol</strong> -- hang around the Crooked Tankard. We want them to be
+          able to <strong>greet each other</strong> and <strong>order beer</strong>. Either
+          one, in any order, whenever it's their turn.
         </p>
-        <ol>
-          <li>
-            Look at every action defined in the bundle for which this character could be the{' '}
-            <strong>initiator</strong>.
-          </li>
-          <li>
-            <strong>Cast the remaining roles</strong> from entities the host adapter tells
-            the runtime about (typically nearby characters and items).
-          </li>
-          <li>
-            Evaluate each action's <strong>conditions</strong> against the current state;
-            discard the casts that fail.
-          </li>
-          <li>
-            <strong>Pick one</strong> of the surviving casts (weighted later, uniform for
-            now), run its <strong>effects</strong>, and save the action record via the
-            adapter's <code>saveActionData</code>.
-          </li>
-        </ol>
+      </section>
+
+      <section className="prose">
+        <h2>Let's write that in Viv</h2>
         <p>
-          Below is a walk-through of those four steps, run on stage 1's only action,{' '}
-          <code>hello</code>. Pick an initiator, then click your way through. The "Run via{' '}
-          <code>selectAction</code>" button at the end hands the same scenario to the real
-          runtime so you can see the answers agree.
+          One action per intent. Each action declares the roles it needs cast, what its
+          effects are, and how to describe it for the chronicle. That's the whole file:
+        </p>
+        <HighlightedViv code={vivSource} />
+      </section>
+
+      <section className="prose">
+        <h2>Now we need a host</h2>
+        <p>
+          Viv's runtime is a library, not an engine that runs on its own. A host
+          application -- your game, your prototype, your Node script -- is the thing that{' '}
+          <em>uses</em> the runtime: it owns the world state, decides whose turn it is, and
+          asks Viv "what's next?" via <code>selectAction</code>.
+        </p>
+        <p>
+          There's some plumbing to set that up (a content-bundle import, a small adapter
+          telling the runtime how to read and write your entities), but the moving part you
+          actually keep in your head is a one-liner inside a loop:
+        </p>
+        <HighlightedTs code={HOST_LOOP} />
+        <p>
+          That's the whole game loop. The runtime does everything else.
+        </p>
+      </section>
+
+      <section className="prose">
+        <h2>Now let's look at what happens when <code>selectAction</code> is called</h2>
+        <p>
+          Pick a character below and walk through the four steps the runtime performs
+          inside that single <code>await</code>. The first three are computed and
+          displayed for you so you can see exactly what the runtime is considering; the
+          fourth hands off to the real <code>selectAction</code>, which writes to the
+          chronicle below.
         </p>
       </section>
 
       <AlgorithmDemo />
 
-      <section className="prose">
-        <h2>The same thing, in the actual runtime</h2>
-        <p>
-          The walkthrough above narrates what <code>selectAction</code> does, with the
-          intermediate working set exposed for inspection. The sandbox below is the same
-          algorithm, just running freely: pick a stage, hit <em>Step</em>, and watch the
-          chronicle fill in. At stage 1 there is only one action, so the chronicle is a
-          monotone sequence of greetings and everyone gets cheered up.
-        </p>
-        <p>
-          The tabs swap among the actual artifacts the runtime is using -- the{' '}
-          <code>.viv</code> source, the host TypeScript, and the compiled JSON bundle.
-        </p>
-      </section>
-
-      <StagePicker
-        stages={STAGES}
-        active={activeStageId}
-        onChange={setActiveStageId}
-      />
-
-      <div className="sandbox-anchor">
-        <Sandbox stage={activeStage} />
-        <p className="dim sandbox-hint">{activeStage.blurb}</p>
-      </div>
-
       <section className="prose stub">
         <h2>What comes next</h2>
         <p>
-          The next pass adds a second action with conditions, then importance, then
-          location-aware roles, then reactions. Once the Stage 1 walkthrough above feels
-          right we'll re-introduce them one by one alongside their own algorithm panels.
+          The next pass adds conditions, then importance, then location-aware roles, then
+          reactions. We'll re-introduce them one at a time, alongside their own algorithm
+          panels, once the Stage 1 walkthrough above feels right.
         </p>
       </section>
 
@@ -112,37 +122,11 @@ export default function App() {
           <a href="https://github.com/possibly/viv/tree/browser/runtime" target="_blank" rel="noreferrer">
             browser/runtime
           </a>{' '}
-          build of Viv (v0.10.x). Source for this page lives in{' '}
-          <code>/src</code>; the <code>.viv</code> sources and compiled bundles live in{' '}
+          build of Viv (v0.10.x). Source for this page lives in <code>/src</code>; the{' '}
+          <code>.viv</code> source and compiled bundle live in{' '}
           <code>/public/vivsrc</code> and <code>/public/bundles</code>.
         </p>
       </footer>
-    </div>
-  )
-}
-
-function StagePicker({
-  stages,
-  active,
-  onChange,
-}: {
-  stages: typeof STAGES
-  active: number
-  onChange: (id: number) => void
-}) {
-  const single = stages.length <= 1
-  return (
-    <div className={`stage-picker${single ? ' single' : ''}`}>
-      <label>
-        <span>Sandbox stage:</span>
-        <select value={active} onChange={(e) => onChange(Number(e.target.value))}>
-          {stages.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.title}
-            </option>
-          ))}
-        </select>
-      </label>
     </div>
   )
 }

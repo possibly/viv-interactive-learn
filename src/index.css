@@ -552,34 +552,18 @@ pre.code code {
 .diff-table tr.changed { background: var(--accent-bg); }
 .diff-table .delta { color: var(--accent); font-family: var(--mono); font-size: 12px; margin-left: 4px; }
 
-.algo-verify {
+.chronicle-panel {
   margin-top: 18px;
   padding: 14px;
   border: 1px dashed var(--border);
   border-radius: 8px;
 }
-.algo-verify h4 {
+.chronicle-panel h4 {
   text-transform: none;
   letter-spacing: 0;
   font-size: 15px;
   color: var(--text-h);
-  margin-bottom: 6px;
-}
-.algo-verify button {
-  font: inherit;
-  font-weight: 500;
-  font-size: 13px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--accent);
-  background: var(--accent);
-  color: white;
-  cursor: pointer;
-}
-.algo-verify button:disabled { opacity: 0.5; }
-.verify-result {
-  margin-top: 10px;
-  font-size: 14px;
+  margin-bottom: 8px;
 }
 
 .stub {
@@ -591,4 +575,21 @@ pre.code code {
 .code.lang-ts code,
 .code.lang-json code {
   white-space: pre;
+}
+
+.tok-comment { color: var(--text-dim); font-style: italic; }
+.tok-keyword { color: #c026d3; font-weight: 500; }
+.tok-string  { color: var(--good); }
+.tok-role    { color: var(--accent); font-weight: 500; }
+.tok-function{ color: #2563eb; }
+.tok-enum    { color: var(--warn); font-weight: 500; }
+.tok-label   { color: #2563eb; font-style: italic; }
+.tok-number  { color: var(--warn); }
+.tok-ident   { color: var(--text-h); }
+.tok-op      { color: var(--text-dim); }
+
+@media (prefers-color-scheme: dark) {
+  .tok-keyword { color: #f0abfc; }
+  .tok-function{ color: #60a5fa; }
+  .tok-label   { color: #60a5fa; }
 }
