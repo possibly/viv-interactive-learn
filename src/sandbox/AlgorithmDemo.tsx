@@ -387,19 +387,33 @@ function renderStepBody(step: number, d: DemoState): React.ReactNode {
         <>
           <p>
             For each candidate action, the runtime needs to fill the remaining roles. By
-            default it draws candidates from entities at the same location as the
-            initiator -- and recall from the host snippet above that all three regulars
-            are pinned to <code>location: "tavern"</code>. <strong>Location isn't a Viv
-            concept</strong>; it's a plain property the host attaches to each entity, and
-            the runtime queries it through the adapter.
+            default, when the role casts a character or item, the runtime asks the host:
+            "give me the entities of that type <em>at the initiator's location</em>." The
+            adapter call is{' '}
+            <code>getEntityIDs(EntityType.Character, initiator.location)</code>.
           </p>
           <p>
-            So for Alice the candidates for <code>@friend</code> are simply Bob and Carol.
+            That makes <code>location</code> one of the small set of properties Viv
+            treats specially -- it's not invented by your viv file, but the runtime knows
+            to look for it on every entity when wiring up role casting (and{' '}
+            <a
+              href="https://viv.sifty.studio/reference/language/11-reactions/#location"
+              target="_blank"
+              rel="noreferrer"
+            >
+              several other places
+            </a>
+            ). The role-cast can opt out with <code>as: character, anywhere</code> in the
+            viv file, but our greet/order-beer roles haven't, so they get the default.
           </p>
-          <p className="dim">
-            (If you wanted a role to consider entities anywhere in the world regardless of
-            location, you'd opt out in the viv file with{' '}
-            <code>as: character, anywhere</code>. We don't need that here.)
+          <p>
+            In our host, all three regulars carry <code>location: "tavern"</code>, so for
+            Alice the candidates for <code>@friend</code> are Bob and Carol. (If a host
+            didn't set <code>location</code> on anyone, the runtime would call{' '}
+            <code>getEntityIDs(Character, undefined)</code>; by adapter convention an
+            unset <code>locationID</code> means "give me everyone of this type" -- so
+            characters with no location at all behave as if they're all in one big shared
+            room.)
           </p>
           <p>Each candidate becomes one casting attempt:</p>
           <ul className="bare">
