@@ -8,12 +8,16 @@ import {
   type ChronicleEntry,
 } from './world'
 
-// Stage 6: queries gate actions on the chronicle.
+// Stage 6: per-pair query gating.
 //
-// Runs five turns. Tease and cheer_up include the has-greeted query
-// as a condition, so they're locked out until greet fires once.
-// Greet's forever embargo means it then never fires again, so
-// turns 2-5 alternate between tease and cheer_up.
+// The has-greeted-with query is parameterized by two character
+// roles, so tease and cheer_up only become eligible for a specific
+// (initiator, recipient) pair after that pair has greeted in either
+// direction. Greet's embargo also tracks the pair, so the runtime
+// will not redundantly pick the same direction twice.
+//
+// We run five turns and visualize the state of all three character
+// pairs at each turn so the unlocking is visible.
 
 const STAGE6_BUNDLE_PATH = `${import.meta.env.BASE_URL}bundles/stage6.json`
 
@@ -25,26 +29,28 @@ const ACTION_COLORS: Record<string, string> = {
   cheer_up: '#aa3bff',
 }
 
-const ALL_ACTION_NAMES = ['greet', 'tease', 'cheer_up'] as const
-
 interface BundleAction {
   name: string
-  embargoes?: Array<{ permanent?: boolean }>
 }
 
 type Bundle = { actions: Record<string, BundleAction> }
+
+interface PairStatus {
+  a: UID
+  b: UID
+  label: string
+  greeted: boolean
+}
 
 interface TurnRecord {
   turn: number
   initiator: UID
   initiatorName: string
-  hasGreeted: boolean // query state at the start of this turn
-  eligible: string[] // action names eligible after embargo + query gates
-  embargoed: string[] // action names embargoed at start of turn
-  queryGated: string[] // action names blocked by the has-greeted query
+  pairsBefore: PairStatus[] // pair status at the START of the turn
   pickedActionName: string
+  pickedTargetID?: UID
   pickedReport: string
-  effectsActivatedEmbargo: boolean
+  unlockedPair?: string // label of the pair that this turn's greet unlocked
 }
 
 export default function Stage6Demo() {
@@ -71,33 +77,15 @@ export default function Stage6Demo() {
           adapter: makeAdapter(world),
         })
 
-        const permanentEmbargoActions = new Set<string>()
-        for (const [name, def] of Object.entries(bundle.actions)) {
-          if (def.embargoes?.some((e) => e.permanent)) {
-            permanentEmbargoActions.add(name)
-          }
-        }
-
-        // Local mirror of which actions require the has-greeted query
-        // to have matched. Lets us narrate eligibility without parsing
-        // the bundle's condition AST again here.
-        const QUERY_GATED = new Set(['tease', 'cheer_up'])
-
+        const greetedPairs = new Set<string>()
         const out: TurnRecord[] = []
-        const fired = new Set<string>()
-        let hasGreeted = false
 
         for (let i = 0; i < TURN_INITIATORS.length; i++) {
           const initiator = TURN_INITIATORS[i]
-          const embargoed = ALL_ACTION_NAMES.filter(
-            (n) => permanentEmbargoActions.has(n) && fired.has(n),
-          )
-          const queryGated = hasGreeted
-            ? []
-            : ALL_ACTION_NAMES.filter((n) => QUERY_GATED.has(n))
-          const eligible = ALL_ACTION_NAMES.filter(
-            (n) => !embargoed.includes(n) && !queryGated.includes(n),
-          )
+          const pairsBefore = enumeratePairs().map((p) => ({
+            ...p,
+            greeted: greetedPairs.has(pairKey(p.a, p.b)),
+          }))
 
           const actionID = await viv.selectAction({ initiatorID: initiator })
           if (cancelled) return
@@ -106,39 +94,41 @@ export default function Stage6Demo() {
               turn: i + 1,
               initiator,
               initiatorName: nameOf(initiator),
-              hasGreeted,
-              eligible,
-              embargoed,
-              queryGated,
+              pairsBefore,
               pickedActionName: '(none eligible)',
               pickedReport: '',
-              effectsActivatedEmbargo: false,
             })
             continue
           }
+
           const rec = actionRecord(world, actionID) as
-            | { name?: string; report?: string }
+            | {
+                name?: string
+                report?: string
+                bindings?: Record<string, UID[]>
+              }
             | undefined
           const pickedName = String(rec?.name ?? '?')
-          const wasNewlyEmbargoed =
-            permanentEmbargoActions.has(pickedName) && !fired.has(pickedName)
-          if (permanentEmbargoActions.has(pickedName)) {
-            fired.add(pickedName)
+          const targetID = pickedTargetFrom(rec, pickedName)
+
+          let unlockedPair: string | undefined
+          if (pickedName === 'greet' && targetID) {
+            const key = pairKey(initiator, targetID)
+            if (!greetedPairs.has(key)) {
+              greetedPairs.add(key)
+              unlockedPair = pairLabel(initiator, targetID)
+            }
           }
-          if (pickedName === 'greet') {
-            hasGreeted = true
-          }
+
           out.push({
             turn: i + 1,
             initiator,
             initiatorName: nameOf(initiator),
-            hasGreeted,
-            eligible,
-            embargoed,
-            queryGated,
+            pairsBefore,
             pickedActionName: pickedName,
+            pickedTargetID: targetID,
             pickedReport: String(rec?.report ?? ''),
-            effectsActivatedEmbargo: wasNewlyEmbargoed,
+            unlockedPair,
           })
         }
 
@@ -192,35 +182,23 @@ export default function Stage6Demo() {
               <span className="turn-initiator">
                 <strong>{t.initiatorName}</strong> is up
               </span>
-              <span
-                className={`query-pill ${t.hasGreeted ? 'condition-pass' : 'condition-fail'}`}
-              >
-                <span className="condition-mark">{t.hasGreeted ? '✓' : '✗'}</span>
-                <code>has-greeted</code>
-              </span>
             </div>
-            <div className="turn-eligible">
-              <span className="turn-eligible-label">Eligible:</span>
-              {ALL_ACTION_NAMES.map((name) => {
-                const isEligible = t.eligible.includes(name)
-                const isEmbargoed = t.embargoed.includes(name)
-                const isQueryGated = t.queryGated.includes(name)
-                let title: string | undefined
-                if (isEmbargoed) title = 'Embargoed (already fired)'
-                else if (isQueryGated) title = 'Query has-greeted has not matched yet'
-                return (
-                  <span
-                    key={name}
-                    className={`turn-action${isEligible ? '' : ' turn-action-embargoed'}`}
-                    style={isEligible ? { color: ACTION_COLORS[name] } : undefined}
-                    title={title}
-                  >
-                    {name}
-                    {isEmbargoed && <span aria-hidden="true"> 🔒</span>}
-                    {isQueryGated && <span aria-hidden="true"> ?</span>}
-                  </span>
-                )
-              })}
+            <div className="pair-status">
+              <span className="pair-status-label">Pairs greeted:</span>
+              {t.pairsBefore.map((p) => (
+                <span
+                  key={p.label}
+                  className={`pair-pill ${p.greeted ? 'condition-pass' : 'condition-fail'}`}
+                  title={
+                    p.greeted
+                      ? `${p.label} have greeted; tease and cheer_up unlocked for them`
+                      : `${p.label} have not greeted; tease and cheer_up are gated`
+                  }
+                >
+                  <span className="condition-mark">{p.greeted ? '✓' : '✗'}</span>
+                  {p.label}
+                </span>
+              ))}
             </div>
             <div className="turn-pick">
               <span className="turn-pick-label">Picked:</span>
@@ -233,9 +211,9 @@ export default function Stage6Demo() {
               {t.pickedReport && (
                 <span className="turn-pick-report">{t.pickedReport}</span>
               )}
-              {t.effectsActivatedEmbargo && (
-                <span className="turn-embargo-fired" title="Permanent embargo activated">
-                  embargo activated 🔒
+              {t.unlockedPair && (
+                <span className="turn-embargo-fired" title="This greet unlocked the pair">
+                  unlocked {t.unlockedPair} 🔓
                 </span>
               )}
             </div>
@@ -266,4 +244,39 @@ export default function Stage6Demo() {
 
 function nameOf(id: UID): string {
   return STAGE2_CHARACTERS.find((c) => c.id === id)?.name ?? id
+}
+
+function pairKey(a: UID, b: UID): string {
+  return [a, b].sort().join('|')
+}
+
+function pairLabel(a: UID, b: UID): string {
+  const [first, second] = [a, b].sort()
+  return `${nameOf(first)}-${nameOf(second)}`
+}
+
+function enumeratePairs(): Array<{ a: UID; b: UID; label: string }> {
+  const ids = STAGE2_CHARACTERS.map((c) => c.id)
+  const out: Array<{ a: UID; b: UID; label: string }> = []
+  for (let i = 0; i < ids.length; i++) {
+    for (let j = i + 1; j < ids.length; j++) {
+      out.push({ a: ids[i], b: ids[j], label: pairLabel(ids[i], ids[j]) })
+    }
+  }
+  return out
+}
+
+function pickedTargetFrom(
+  rec: { bindings?: Record<string, UID[]> } | undefined,
+  actionName: string,
+): UID | undefined {
+  if (!rec?.bindings) return undefined
+  const targetRoleByAction: Record<string, string> = {
+    greet: 'friend',
+    tease: 'target',
+    cheer_up: 'target',
+  }
+  const role = targetRoleByAction[actionName]
+  if (!role) return undefined
+  return rec.bindings[role]?.[0]
 }

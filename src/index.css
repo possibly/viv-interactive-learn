@@ -1330,8 +1330,22 @@ pre.code.inline-snippet {
   border: 1px dashed var(--accent-border);
 }
 
-/* Stage 6: query state pill in the turn header. */
-.query-pill {
+/* Stage 6: per-pair greeted-with status pills. */
+.pair-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.pair-status-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.pair-pill {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -1341,12 +1355,12 @@ pre.code.inline-snippet {
   border-radius: 3px;
   border: 1px solid;
 }
-.query-pill.condition-pass {
+.pair-pill.condition-pass {
   border-color: var(--good);
   background: var(--good-bg);
   color: var(--good);
 }
-.query-pill.condition-fail {
+.pair-pill.condition-fail {
   border-color: var(--error);
   background: var(--error-bg);
   color: var(--error);

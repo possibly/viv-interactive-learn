@@ -404,8 +404,10 @@ export default function App() {
         <h2>Stage 6: gating actions on the chronicle with queries</h2>
         <p>
           The story still feels disorderly. Tease and cheer_up can fire on turn 1, before
-          anyone has even said hello. We want greeting to come <em>first</em>: until our
-          friends have greeted each other, the other actions should be off the table.
+          anyone has even said hello. We want greeting to come <em>first</em>, and we want
+          it to be a per-pair handshake: Alice and Bob have to greet each other before
+          they can tease or cheer up <em>each other</em>, but their hello should not
+          unlock anything for the Bob-Carol pair.
         </p>
         <p>
           Conditions can do more than read entity properties. They can also run a{' '}
@@ -421,15 +423,18 @@ export default function App() {
           least one chronicle entry matches.
         </p>
         <p>
-          We declare a one-line query, <code>has-greeted</code>, that matches any greet
-          action. tease and cheer_up include it as a condition, so they only become
-          eligible after greet has fired.
+          A query can take roles of its own. We declare <code>greeted-with</code> with two
+          character roles, <code>@a</code> and <code>@b</code>, and ask for any greet
+          where both of them were active. tease and cheer_up bind their own cast into the
+          query (<code>@a: @teaser, @b: @target</code>), so the gate is per-pair. greet
+          also embargoes the same pair so the runtime will not pick the same direction
+          twice.
         </p>
         <HighlightedViv code={stage6Source} />
         <p>
-          The demo runs the same five turns. On turn 1 the chronicle is empty, the query
-          finds no matches, and only greet is eligible. From turn 2 onward greet is
-          embargoed but the query is satisfied, so tease and cheer_up open up.
+          The demo runs the same five turns. At each turn we show the state of all three
+          character pairs; tease and cheer_up only become available for a pair once a
+          green check sits next to it.
         </p>
       </section>
 

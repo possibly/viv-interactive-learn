@@ -1,22 +1,32 @@
 // Stage 6: queries gate actions on the chronicle.
 //
-// The `has-greeted` query matches any greet action in the global
-// chronicle. tease and cheer_up include the search as a condition,
-// so they only become eligible after greet fires. greet keeps its
-// forever embargo from stage 5, so the run plays out as:
+// `greeted-with` takes two character roles and matches any greet
+// where both of them were active (in either direction). tease and
+// cheer_up bind their own cast (initiator and recipient) into the
+// query so the gate is per-pair: Alice and Bob have to greet each
+// other before they can tease or cheer up each other, but their
+// greet does not unlock the Bob-Carol pair.
 //
-//   Turn 1: only greet is eligible (chronicle is empty).
-//   Turn 2+: greet is embargoed; tease and cheer_up unlock.
+// greet's embargo also tracks the (greeter, friend) pair, so the
+// runtime will not pick the same direction twice.
 
-query has-greeted:
+query greeted-with:
+    roles:
+        @a:
+            as: character
+        @b:
+            as: character
     action:
         any: greet
+    active:
+        all: @a, @b
 
 action greet:
     importance: 1
     embargoes:
         embargo:
             time: forever
+            roles: @greeter, @friend
     report: '{@greeter.name} says hello to {@friend.name}'
     roles:
         @greeter:
@@ -27,8 +37,11 @@ action greet:
 action tease:
     importance: 3
     conditions:
-        search query has-greeted:
+        search query greeted-with:
             over: chronicle
+            with:
+                @a: @teaser
+                @b: @target
     report: '{@teaser.name} teases {@target.name}'
     effects:
         @target.cheerful = false
@@ -41,8 +54,11 @@ action tease:
 action cheer_up:
     importance: 3
     conditions:
-        search query has-greeted:
+        search query greeted-with:
             over: chronicle
+            with:
+                @a: @helper
+                @b: @target
         @target.cheerful == false
     report: '{@helper.name} cheers up {@target.name}'
     effects:
