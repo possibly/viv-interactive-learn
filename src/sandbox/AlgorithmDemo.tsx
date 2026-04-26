@@ -386,17 +386,26 @@ function renderStepBody(step: number, d: DemoState): React.ReactNode {
       return (
         <>
           <p>
-            For each candidate action, the runtime needs to fill the remaining roles.
-            <strong> By default it draws candidates from entities at the same location as
-            the initiator</strong> -- the viv file doesn't declare anything about location;
-            this is just the runtime's default behaviour for character roles. Everyone in
-            our tavern is in the same room, so for Alice the candidates for{' '}
+            For each candidate action, the runtime needs to fill the remaining roles. By
+            default it draws candidates from entities at the same location as the
+            initiator. <strong>Location isn't a Viv concept</strong> -- it's a plain
+            property the host attaches to each character entity, and the runtime queries
+            it through the adapter:
+          </p>
+          <pre className="code lang-ts inline-snippet">
+            <code>{`// host state, set up before any selectAction call
+entities.alice = { id: "alice", location: "tavern", mood: 0, ... }
+entities.bob   = { id: "bob",   location: "tavern", mood: 0, ... }
+entities.carol = { id: "carol", location: "tavern", mood: 0, ... }`}</code>
+          </pre>
+          <p>
+            All three regulars are at <code>tavern</code>, so for Alice the candidates for{' '}
             <code>@friend</code> are simply Bob and Carol.
           </p>
           <p className="dim">
-            (If you wanted a role to consider entities anywhere in the world, you'd opt out
-            in the viv file with <code>as: character, anywhere</code>. We don't need that
-            here.)
+            (If you wanted a role to consider entities anywhere in the world regardless of
+            location, you'd opt out in the viv file with{' '}
+            <code>as: character, anywhere</code>. We don't need that here.)
           </p>
           <p>Each candidate becomes one casting attempt:</p>
           <ul className="bare">

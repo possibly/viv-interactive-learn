@@ -588,6 +588,14 @@ pre.code code {
 .tok-ident   { color: var(--text-h); }
 .tok-op      { color: var(--text-dim); }
 
+/* Smaller code block when embedded inside step-body prose. */
+pre.code.inline-snippet {
+  font-size: 12.5px;
+  margin: 6px 0 10px;
+  padding: 10px 12px;
+  max-height: none;
+}
+
 @media (prefers-color-scheme: dark) {
   .tok-keyword { color: #f0abfc; }
   .tok-function{ color: #60a5fa; }

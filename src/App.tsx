@@ -84,6 +84,16 @@ export default function App() {
           asks Viv "what's next?" via <code>selectAction</code>.
         </p>
         <p>
+          "Owns the world state" is the load-bearing phrase here.{' '}
+          <strong>The host decides what entities exist and what properties they have</strong>{' '}
+          -- including spatial ones like which character is where, and which item is
+          sitting on which table. The runtime never invents those; it queries the host
+          through a small adapter when it needs them. In our tavern, the host puts Alice,
+          Bob, and Carol all at one location named <code>tavern</code>; that's why
+          everyone counts as "nearby" everyone else when the runtime goes looking for role
+          candidates.
+        </p>
+        <p>
           There's some plumbing to set that up (a content-bundle import, a small adapter
           telling the runtime how to read and write your entities), but the moving part you
           actually keep in your head is a one-liner inside a loop:
