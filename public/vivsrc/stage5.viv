@@ -1,0 +1,108 @@
+// Stage 5: cause-and-effect chains via reactions.
+//
+// An "insult" automatically queues a "retort" reaction, which the runtime
+// will pick up on a future tick. This is where Viv earns its keep --
+// authors describe consequences once, and the runtime threads them
+// through the simulation as causal chains. The chronicle becomes an
+// emergent narrative rather than a flat list of independent events.
+
+action hello:
+    gloss: "@greeter says hello to @friend"
+    report: '{@greeter.name} smiles and waves at {@friend.name}'
+    importance: #LOW
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+    effects:
+        @greeter.mood += 5
+        @friend.mood += 5
+
+action gossip:
+    gloss: "@gossiper gossips with @listener about @subject"
+    report: '{@gossiper.name} leans in and whispers something unkind about {@subject.name} to {@listener.name}'
+    importance: #MODERATE
+    roles:
+        @gossiper:
+            as: initiator
+        @listener:
+            as: recipient
+        @subject:
+            as: character, anywhere
+    saliences:
+        default: #HIGH
+    conditions:
+        @gossiper.mood < 0
+        @subject != @gossiper
+        @subject != @listener
+    effects:
+        @gossiper.mood += 2
+        @listener.mood -= 1
+        @subject.mood -= 5
+
+action befriend:
+    gloss: "@a befriends @b"
+    report: '{@a.name} and {@b.name} share a long look and seem to truly understand each other for the first time'
+    importance: #HIGH
+    roles:
+        @a:
+            as: initiator
+        @b:
+            as: recipient
+    conditions:
+        @a.mood > 5
+        @b.mood > 5
+        @a != @b
+    effects:
+        @a.mood += 10
+        @b.mood += 10
+
+action drink-ale:
+    gloss: "@drinker drinks ale at @here"
+    report: '{@drinker.name} takes a long pull of ale at the {@here.name}'
+    importance: #LOW
+    roles:
+        @drinker:
+            as: initiator
+        @here:
+            as: location
+        @ale:
+            as: item
+    conditions:
+        @here.is_tavern == true
+    effects:
+        @drinker.mood += 3
+        @drinker.tipsy += 1
+
+action insult:
+    gloss: "@aggressor insults @victim"
+    report: '{@aggressor.name} hurls a stinging insult at {@victim.name}'
+    importance: #HIGH
+    roles:
+        @aggressor:
+            as: initiator
+        @victim:
+            as: recipient
+    conditions:
+        @aggressor.mood < -2
+    effects:
+        @victim.mood -= 8
+    reactions:
+        queue action retort:
+            with:
+                @retorter: @victim
+                @target: @aggressor
+
+reserved action retort:
+    gloss: "@retorter retorts at @target"
+    report: '{@retorter.name} fires a sharp retort right back at {@target.name}'
+    importance: #HIGH
+    roles:
+        @retorter:
+            as: initiator
+        @target:
+            as: recipient, precast
+    effects:
+        @target.mood -= 4
+        @retorter.mood += 1

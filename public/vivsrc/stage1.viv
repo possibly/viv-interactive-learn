@@ -1,0 +1,16 @@
+// Stage 1: a single greeting action.
+//
+// The simplest possible Viv: one action, two roles, two effects.
+// Everyone in the tavern can greet anyone else; greetings cheer them up.
+
+action hello:
+    gloss: "@greeter says hello to @friend"
+    report: '{@greeter.name} smiles and waves at {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+    effects:
+        @greeter.mood += 5
+        @friend.mood += 5

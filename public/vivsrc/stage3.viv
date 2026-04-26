@@ -1,0 +1,61 @@
+// Stage 3: importance and salience -- guiding the choice.
+//
+// Now we have several eligible actions for any given character. We tell
+// Viv which ones *matter narratively*, and which characters are most
+// drawn to them.
+//
+// Importance scales how much an action contributes to the story (it
+// affects sifting and weighting). Salience scales how attractive the
+// action is to a particular role-bearer at a moment in time.
+
+action hello:
+    gloss: "@greeter says hello to @friend"
+    report: '{@greeter.name} smiles and waves at {@friend.name}'
+    importance: #LOW
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+    effects:
+        @greeter.mood += 5
+        @friend.mood += 5
+
+action gossip:
+    gloss: "@gossiper gossips with @listener about @subject"
+    report: '{@gossiper.name} leans in and whispers something unkind about {@subject.name} to {@listener.name}'
+    importance: #MODERATE
+    roles:
+        @gossiper:
+            as: initiator
+        @listener:
+            as: recipient
+        @subject:
+            as: character, anywhere
+    saliences:
+        default: #HIGH
+    conditions:
+        @gossiper.mood < 0
+        @subject != @gossiper
+        @subject != @listener
+    effects:
+        @gossiper.mood += 2
+        @listener.mood -= 1
+        @subject.mood -= 5
+
+action befriend:
+    gloss: "@a befriends @b"
+    report: '{@a.name} and {@b.name} share a long look and seem to truly understand each other for the first time'
+    importance: #HIGH
+    roles:
+        @a:
+            as: initiator
+        @b:
+            as: recipient
+    conditions:
+        @a.mood > 5
+        @b.mood > 5
+        @a != @b
+    effects:
+        @a.mood += 10
+        @b.mood += 10
