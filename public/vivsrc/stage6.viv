@@ -1,0 +1,54 @@
+// Stage 6: queries gate actions on the chronicle.
+//
+// The `has-greeted` query matches any greet action in the global
+// chronicle. tease and cheer_up include the search as a condition,
+// so they only become eligible after greet fires. greet keeps its
+// forever embargo from stage 5, so the run plays out as:
+//
+//   Turn 1: only greet is eligible (chronicle is empty).
+//   Turn 2+: greet is embargoed; tease and cheer_up unlock.
+
+query has-greeted:
+    action:
+        any: greet
+
+action greet:
+    importance: 1
+    embargoes:
+        embargo:
+            time: forever
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+action tease:
+    importance: 3
+    conditions:
+        search query has-greeted:
+            over: chronicle
+    report: '{@teaser.name} teases {@target.name}'
+    effects:
+        @target.cheerful = false
+    roles:
+        @teaser:
+            as: initiator
+        @target:
+            as: recipient
+
+action cheer_up:
+    importance: 3
+    conditions:
+        search query has-greeted:
+            over: chronicle
+        @target.cheerful == false
+    report: '{@helper.name} cheers up {@target.name}'
+    effects:
+        @target.cheerful = true
+    roles:
+        @helper:
+            as: initiator
+        @target:
+            as: recipient

@@ -5,6 +5,7 @@ import Stage2Demo from './sandbox/Stage2Demo'
 import Stage3Demo from './sandbox/Stage3Demo'
 import Stage4Demo from './sandbox/Stage4Demo'
 import Stage5Demo from './sandbox/Stage5Demo'
+import Stage6Demo from './sandbox/Stage6Demo'
 import { HighlightedTs, HighlightedViv } from './sandbox/highlight'
 
 const STAGE1_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
@@ -12,6 +13,7 @@ const STAGE2_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage2.viv`
 const STAGE3_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage3.viv`
 const STAGE4_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage4.viv`
 const STAGE5_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage5.viv`
+const STAGE6_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage6.viv`
 
 const HOST_WORLD = `// The host owns the world. Plain objects, nothing here knows
 // about Viv yet. Three friends with an id, a name, and a
@@ -90,6 +92,7 @@ export default function App() {
   const [stage3Source, setStage3Source] = useState<string>('Loading...')
   const [stage4Source, setStage4Source] = useState<string>('Loading...')
   const [stage5Source, setStage5Source] = useState<string>('Loading...')
+  const [stage6Source, setStage6Source] = useState<string>('Loading...')
   const [importance, setImportance] = useState<Record<string, number>>(INITIAL_IMPORTANCE)
 
   useEffect(() => {
@@ -100,14 +103,16 @@ export default function App() {
       fetch(STAGE3_VIV_PATH).then((r) => r.text()),
       fetch(STAGE4_VIV_PATH).then((r) => r.text()),
       fetch(STAGE5_VIV_PATH).then((r) => r.text()),
+      fetch(STAGE6_VIV_PATH).then((r) => r.text()),
     ])
-      .then(([s1, s2, s3, s4, s5]) => {
+      .then(([s1, s2, s3, s4, s5, s6]) => {
         if (cancelled) return
         setStage1Source(s1)
         setStage2Source(s2)
         setStage3Source(s3)
         setStage4Source(s4)
         setStage5Source(s5)
+        setStage6Source(s6)
       })
       .catch(() => {})
     return () => {
@@ -394,6 +399,41 @@ export default function App() {
       </section>
 
       <Stage5Demo />
+
+      <section className="prose">
+        <h2>Stage 6: gating actions on the chronicle with queries</h2>
+        <p>
+          The story still feels disorderly. Tease and cheer_up can fire on turn 1, before
+          anyone has even said hello. We want greeting to come <em>first</em>: until our
+          friends have greeted each other, the other actions should be off the table.
+        </p>
+        <p>
+          Conditions can do more than read entity properties. They can also run a{' '}
+          <a
+            href="https://viv.sifty.studio/reference/language/15-queries.html"
+            target="_blank"
+            rel="noreferrer"
+          >
+            query
+          </a>{' '}
+          over the chronicle, the runtime's record of every action that has fired so far.
+          A query is a named pattern; a condition that runs the query passes when at
+          least one chronicle entry matches.
+        </p>
+        <p>
+          We declare a one-line query, <code>has-greeted</code>, that matches any greet
+          action. tease and cheer_up include it as a condition, so they only become
+          eligible after greet has fired.
+        </p>
+        <HighlightedViv code={stage6Source} />
+        <p>
+          The demo runs the same five turns. On turn 1 the chronicle is empty, the query
+          finds no matches, and only greet is eligible. From turn 2 onward greet is
+          embargoed but the query is satisfied, so tease and cheer_up open up.
+        </p>
+      </section>
+
+      <Stage6Demo />
 
       <footer className="page-footer">
         <p className="dim">
