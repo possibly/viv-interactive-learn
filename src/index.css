@@ -299,10 +299,29 @@ pre.code code {
   .algo-step { padding: 10px 12px; }
   .step-body { min-width: 0; }
   .paper-stage { gap: 10px; }
-  .paper-stage.stage-step-1 { flex-direction: column; align-items: stretch; }
-  .paper-stage.stage-step-1 .paper-arrow { align-self: center; transform: rotate(90deg); }
-  .script-page { flex: 1 1 auto; min-width: 0; padding: 10px 12px; }
-  .script-source { font-size: 11.5px; }
+  /* Block layout sidesteps flex sizing quirks that let the script
+     page balloon to its content's natural width on phones. */
+  .paper-stage.stage-step-1 {
+    display: block;
+  }
+  .paper-stage.stage-step-1 > * + * {
+    margin-top: 10px;
+  }
+  .paper-stage.stage-step-1 .paper-arrow {
+    text-align: center;
+    transform: rotate(90deg);
+    transform-origin: center;
+  }
+  .script-page {
+    max-width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    overflow: hidden;
+  }
+  .script-source {
+    font-size: 11.5px;
+    overflow-x: auto;
+  }
   .tray { flex: 1 1 auto; min-width: 0; width: 100%; }
   .card { min-width: 0; padding: 8px 10px; }
   .cast-grid { grid-template-columns: 1fr; }
