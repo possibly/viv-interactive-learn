@@ -1076,3 +1076,165 @@ pre.code.inline-snippet {
   .tok-function{ color: #60a5fa; }
   .tok-label   { color: #60a5fa; }
 }
+
+/* Stage 4: importance badge on cast cards. */
+.importance-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+/* Stage 4: lab panel for tuning importance. */
+.lab-panel {
+  margin-top: 24px;
+  padding: 16px 18px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+}
+.lab-header h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.lab-header p {
+  margin: 0 0 14px;
+  font-size: 13px;
+}
+.lab-sliders {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.lab-slider label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  margin-bottom: 4px;
+  font-family: var(--mono);
+}
+.lab-slider-name {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.lab-slider-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text-h);
+}
+.lab-slider input[type="range"] {
+  width: 100%;
+  cursor: pointer;
+}
+.lab-slider input[type="range"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.lab-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.dist-bar-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.dist-bar-track {
+  display: flex;
+  height: 28px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.dist-bar-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+.dist-bar-seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: width 200ms ease-out;
+}
+.dist-bar-seg-label {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding: 0 6px;
+}
+.dist-bar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+.dist-bar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+}
+.dist-bar-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.lab-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.lab-actions button {
+  font: inherit;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  cursor: pointer;
+  background: transparent;
+  color: var(--accent);
+}
+.lab-actions button:hover:not(:disabled) {
+  background: var(--accent-bg);
+}
+.lab-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

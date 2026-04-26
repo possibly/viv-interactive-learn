@@ -1,0 +1,38 @@
+// Stage 4: importance steers selection.
+//
+// Same three actions as stage 3, but each declares an importance.
+// The runtime weights the random pick by importance, so cheer_up
+// is far more likely than greet whenever both are available.
+
+action greet:
+    importance: 1
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+action tease:
+    importance: 3
+    report: '{@teaser.name} teases {@target.name}'
+    effects:
+        @target.cheerful = false
+    roles:
+        @teaser:
+            as: initiator
+        @target:
+            as: recipient
+
+action cheer_up:
+    importance: 5
+    report: '{@helper.name} cheers up {@target.name}'
+    conditions:
+        @target.cheerful == false
+    effects:
+        @target.cheerful = true
+    roles:
+        @helper:
+            as: initiator
+        @target:
+            as: recipient

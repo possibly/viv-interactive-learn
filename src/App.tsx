@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import AlgorithmDemo from './sandbox/AlgorithmDemo'
 import Stage2Demo from './sandbox/Stage2Demo'
 import Stage3Demo from './sandbox/Stage3Demo'
+import Stage4Demo from './sandbox/Stage4Demo'
 import { HighlightedTs, HighlightedViv } from './sandbox/highlight'
 
 const STAGE1_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
 const STAGE2_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage2.viv`
 const STAGE3_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage3.viv`
+const STAGE4_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage4.viv`
 
 const HOST_WORLD = `// The host owns the world. Plain objects, nothing here knows
 // about Viv yet. Three friends with an id, a name, and a
@@ -77,6 +79,7 @@ export default function App() {
   const [stage1Source, setStage1Source] = useState<string>('Loading...')
   const [stage2Source, setStage2Source] = useState<string>('Loading...')
   const [stage3Source, setStage3Source] = useState<string>('Loading...')
+  const [stage4Source, setStage4Source] = useState<string>('Loading...')
 
   useEffect(() => {
     let cancelled = false
@@ -84,12 +87,14 @@ export default function App() {
       fetch(STAGE1_VIV_PATH).then((r) => r.text()),
       fetch(STAGE2_VIV_PATH).then((r) => r.text()),
       fetch(STAGE3_VIV_PATH).then((r) => r.text()),
+      fetch(STAGE4_VIV_PATH).then((r) => r.text()),
     ])
-      .then(([s1, s2, s3]) => {
+      .then(([s1, s2, s3, s4]) => {
         if (cancelled) return
         setStage1Source(s1)
         setStage2Source(s2)
         setStage3Source(s3)
+        setStage4Source(s4)
       })
       .catch(() => {})
     return () => {
@@ -304,6 +309,39 @@ export default function App() {
       </section>
 
       <Stage3Demo />
+
+      <section className="prose">
+        <h2>Stage 4: importance steers selection</h2>
+        <p>
+          Step 4 has been picking uniformly: every passing cast got the same{' '}
+          <code>1/N</code> chance. Authors usually do not want that. <code>cheer_up</code>{' '}
+          is dramatically interesting; <code>greet</code> is filler. Viv expresses that
+          preference with{' '}
+          <a
+            href="https://viv.sifty.studio/reference/language/10-actions/#importance"
+            target="_blank"
+            rel="noreferrer"
+          >
+            importance
+          </a>
+          : a number declared per action. The runtime weights its random pick by
+          importance, so a higher number is more likely to fire.
+        </p>
+        <p>
+          We give each action a weight. Greeting is filler (1), teasing is moderate (3),
+          and cheering someone up is the dramatic beat we want most often (5).
+        </p>
+        <HighlightedViv code={stage4Source} />
+        <p>
+          Nothing in the host changes for this stage. Importance lives entirely in the
+          bundle and is consumed by the runtime's picker. The demo below adds a{' '}
+          <strong>Lab</strong> panel where you can retune each action's importance with a
+          slider, see the expected distribution change live, and sample with{' '}
+          <strong>Reroll</strong> to watch the observed bar approach the expected one.
+        </p>
+      </section>
+
+      <Stage4Demo />
 
       <footer className="page-footer">
         <p className="dim">
