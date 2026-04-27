@@ -1,4 +1,4 @@
-// Stage 5: embargoes constrain when an action can fire again.
+// Embargoes constrain when an action can fire again.
 //
 // Greet has a `forever` embargo, so once it fires, the runtime
 // will never pick it again. Tease and cheer_up have no embargo

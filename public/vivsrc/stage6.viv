@@ -1,4 +1,4 @@
-// Stage 6: queries gate actions on the chronicle.
+// Queries gate actions on the chronicle.
 //
 // `greeted-with` takes two character roles and matches any greet
 // where both of them were active (in either direction). tease and

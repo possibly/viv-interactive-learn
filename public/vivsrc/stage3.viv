@@ -1,4 +1,4 @@
-// Stage 3: actions that change the world.
+// Actions that change the world.
 //
 // `tease` makes the target grumpy. `cheer_up` makes them cheerful,
 // but only if they were grumpy in the first place. `greet` is a

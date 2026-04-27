@@ -126,7 +126,66 @@ pre.code code {
 }
 
 .hero {
-  margin-bottom: 56px;
+  margin-bottom: 24px;
+}
+
+/* Sticky table of contents below the hero. */
+.toc-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+  margin: 0 -28px 32px;
+  padding: 12px 28px;
+  border-bottom: 1px solid var(--border);
+  /* A subtle shadow so the divide is visible when content scrolls
+     beneath the sticky bar. */
+  box-shadow: 0 4px 12px -10px rgba(0, 0, 0, 0.15);
+}
+.toc-nav-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.toc-nav-prefix {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.toc-nav select {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text-h);
+  cursor: pointer;
+  max-width: 480px;
+}
+.toc-nav select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+@media (max-width: 720px) {
+  .toc-nav {
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+/* Sections referenced from the TOC: pad the scroll target so the
+   header doesn't slide under the sticky nav when jumped to. */
+section[id] {
+  scroll-margin-top: 64px;
 }
 .hero h1 {
   font-size: 48px;

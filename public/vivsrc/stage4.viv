@@ -1,6 +1,6 @@
-// Stage 4: importance steers selection.
+// Importance steers selection.
 //
-// Same three actions as stage 3, but each declares an importance.
+// Same three actions as before, but each declares an importance.
 // We want our world to tease and cheer up more often than to greet,
 // so greet stays at 1 while tease and cheer_up sit at 3.
 

@@ -1,4 +1,4 @@
-// Stage 1: three friends, one action.
+// Three friends, one action.
 
 action greet:
     report: '{@greeter.name} says hello to {@friend.name}'

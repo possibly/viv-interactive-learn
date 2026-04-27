@@ -1,4 +1,4 @@
-// Stage 2: conditions gate which casts succeed.
+// Conditions gate which casts succeed.
 //
 // `greet` is unconditional. `compliment` only fires when the
 // recipient is cheerful.

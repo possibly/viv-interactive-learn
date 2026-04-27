@@ -6,6 +6,7 @@ import Stage3Demo from './sandbox/Stage3Demo'
 import Stage4Demo from './sandbox/Stage4Demo'
 import Stage5Demo from './sandbox/Stage5Demo'
 import Stage6Demo from './sandbox/Stage6Demo'
+import TocNav, { type TocSection } from './sandbox/TocNav'
 import { HighlightedTs, HighlightedViv } from './sandbox/highlight'
 
 const STAGE1_VIV_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
@@ -64,12 +65,12 @@ const entities = {
 };
 `
 
-const HOST_ADAPTER = `// Stage 3 adds one new callback to the adapter we wrote in stage 1.
+const HOST_ADAPTER = `// Add one new callback to the adapter we wrote earlier.
 // The runtime calls updateEntityProperty once per effect statement,
 // after a cast is picked, with (entityID, propertyPath, newValue).
 
 const adapter = {
-  // ...callbacks from stage 1 (getEntityIDs, getEntityView, ...)...
+  // ...callbacks from before (getEntityIDs, getEntityView, ...)...
 
   updateEntityProperty(id, path, value) {
     // path looks like ["cheerful"] or ["inventory", "sword"].
@@ -85,6 +86,19 @@ const INITIAL_IMPORTANCE: Record<string, number> = {
   tease: 3,
   cheer_up: 3,
 }
+
+const TOC_SECTIONS: TocSection[] = [
+  { id: 'goal', label: 'What we want our characters to do' },
+  { id: 'host', label: 'Start with the host' },
+  { id: 'viv-intro', label: 'Now bring in Viv' },
+  { id: 'wire', label: 'Wire the runtime into the host' },
+  { id: 'select-action', label: 'How selectAction works' },
+  { id: 'conditions', label: 'Gating actions with conditions' },
+  { id: 'effects', label: 'Actions that change the world' },
+  { id: 'importance', label: 'Steering selection with importance' },
+  { id: 'embargoes', label: 'Keeping an action from happening twice' },
+  { id: 'queries', label: 'Gating actions on the chronicle with queries' },
+]
 
 export default function App() {
   const [stage1Source, setStage1Source] = useState<string>('Loading...')
@@ -134,7 +148,9 @@ export default function App() {
         </p>
       </header>
 
-      <section className="prose">
+      <TocNav sections={TOC_SECTIONS} />
+
+      <section className="prose" id="goal">
         <h2>What we want our characters to do</h2>
         <p>
           Three friends, <strong>Alice</strong>, <strong>Bob</strong>, and{' '}
@@ -144,7 +160,7 @@ export default function App() {
         </p>
       </section>
 
-      <section className="prose">
+      <section className="prose" id="host">
         <h2>Start with the host</h2>
         <p>
           Let's start by deciding what exists in our game. We declare this in our host
@@ -173,7 +189,7 @@ export default function App() {
         </aside>
       </section>
 
-      <section className="prose">
+      <section className="prose" id="viv-intro">
         <h2>Now bring in Viv</h2>
         <p>
           <strong>Viv is a small DSL for declaring what's possible</strong>; the runtime
@@ -210,7 +226,7 @@ export default function App() {
         </aside>
       </section>
 
-      <section className="prose">
+      <section className="prose" id="wire">
         <h2>Wire the runtime into the host</h2>
         <p>
           Three additions to the host: import the runtime, initialize it, and let it drive
@@ -224,8 +240,8 @@ export default function App() {
         </p>
       </section>
 
-      <section className="prose">
-        <h2>Now let's look at what happens when <code>selectAction</code> is called</h2>
+      <section className="prose" id="select-action">
+        <h2>How <code>selectAction</code> works</h2>
         <p>
           Pick a character below to see the four steps the runtime performs inside that
           single <code>await</code>. The first three are computed and displayed; the
@@ -236,11 +252,11 @@ export default function App() {
 
       <AlgorithmDemo />
 
-      <section className="prose">
-        <h2>Stage 2: gating actions with conditions</h2>
+      <section className="prose" id="conditions">
+        <h2>Gating actions with conditions</h2>
         <p>
-          Stage 1 only ever knew how to say hello. Let's extend the simulation: we want
-          our friends to do more than greet, but only some of those new actions should be
+          So far our friends only know how to greet. Let's extend the simulation: we want
+          them to do more than say hello, but only some of those new actions should be
           available at any given moment.
         </p>
         <p>
@@ -269,7 +285,7 @@ export default function App() {
       </section>
 
       <section className="prose">
-        <h2>What changes in <code>selectAction</code></h2>
+        <h3>What changes in <code>selectAction</code></h3>
         <p>
           Steps 1 and 2 are unchanged. Step 3 now does real work: each cast is checked
           against its conditions, and any cast that fails is dropped before step 4 picks.
@@ -280,8 +296,8 @@ export default function App() {
 
       <Stage2Demo />
 
-      <section className="prose">
-        <h2>Stage 3: actions that change the world</h2>
+      <section className="prose" id="effects">
+        <h2>Actions that change the world</h2>
         <p>
           Conditions read the world. The other half of an action is{' '}
           <a
@@ -314,10 +330,10 @@ export default function App() {
       </section>
 
       <section className="prose">
-        <h2>
+        <h3>
           Let's look at how our friends at the tavern now greet, tease, and cheer each
           other up
-        </h2>
+        </h3>
         <p>
           Step 4 still picks one passing cast at random, but it also lists the picked
           action's effect statements and shows a snapshot of the world after they ran.
@@ -328,8 +344,8 @@ export default function App() {
 
       <Stage3Demo />
 
-      <section className="prose">
-        <h2>Stage 4: importance steers selection</h2>
+      <section className="prose" id="importance">
+        <h2>Steering selection with importance</h2>
         <p>
           Step 4 has been picking uniformly: every passing cast got the same{' '}
           <code>1/N</code> chance. Now we want to extend our simulation: we want our
@@ -351,8 +367,8 @@ export default function App() {
         </p>
         <HighlightedViv code={stage4Source} />
         <p>
-          Nothing in the host changes for this stage. Importance lives entirely in the
-          bundle and is consumed by the runtime's picker.
+          Nothing in the host changes for this. Importance lives entirely in the bundle
+          and is consumed by the runtime's picker.
         </p>
         <p>
           Drag the sliders below to retune each action's importance. The bar shows the
@@ -363,8 +379,8 @@ export default function App() {
 
       <Stage4Demo importance={importance} />
 
-      <section className="prose">
-        <h2>Stage 5: keep an action from happening twice</h2>
+      <section className="prose" id="embargoes">
+        <h2>Keeping an action from happening twice</h2>
         <p>
           With importance dialed in, our friends now tease and cheer up plenty often, but
           they also greet whenever the picker rolls that way. We want greeting to be a
@@ -400,8 +416,8 @@ export default function App() {
 
       <Stage5Demo />
 
-      <section className="prose">
-        <h2>Stage 6: gating actions on the chronicle with queries</h2>
+      <section className="prose" id="queries">
+        <h2>Gating actions on the chronicle with queries</h2>
         <p>
           The story still feels disorderly. Tease and cheer_up can fire on turn 1, before
           anyone has even said hello. We want greeting to come <em>first</em>, and we want
