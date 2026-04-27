@@ -156,11 +156,22 @@ export default function Stage9Demo() {
             m = null
           }
           if (cancelled) return
-          if (!m) {
+          const povName = pov === 'chronicle' ? 'Chronicle' : nameOf(pov)
+          const teaseID = m?.['the-tease']?.[0]
+          const comfortID = m?.['the-comfort']?.[0]
+          const teaseEntry = teaseID
+            ? built.find((c) => c.actionID === teaseID)
+            : undefined
+          const comfortEntry = comfortID
+            ? built.find((c) => c.actionID === comfortID)
+            : undefined
+          // Treat a result as matched only if both action IDs resolve
+          // in the chronicle we built. A dangling ID would render as
+          // an empty "T" pill, which is just confusing.
+          if (!m || !teaseEntry || !comfortEntry) {
             out.push({
               pov,
-              povName:
-                pov === 'chronicle' ? 'Global chronicle' : nameOf(pov),
+              povName,
               teaseIdx: null,
               teaseReport: null,
               comfortIdx: null,
@@ -169,17 +180,13 @@ export default function Stage9Demo() {
             })
             continue
           }
-          const teaseID = m['the-tease']?.[0]
-          const comfortID = m['the-comfort']?.[0]
-          const teaseEntry = built.find((c) => c.actionID === teaseID)
-          const comfortEntry = built.find((c) => c.actionID === comfortID)
           out.push({
             pov,
-            povName: pov === 'chronicle' ? 'Global chronicle' : nameOf(pov),
-            teaseIdx: teaseEntry?.index ?? null,
-            teaseReport: teaseEntry?.report ?? null,
-            comfortIdx: comfortEntry?.index ?? null,
-            comfortReport: comfortEntry?.report ?? null,
+            povName,
+            teaseIdx: teaseEntry.index,
+            teaseReport: teaseEntry.report,
+            comfortIdx: comfortEntry.index,
+            comfortReport: comfortEntry.report,
             matched: true,
           })
         }

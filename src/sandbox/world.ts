@@ -20,6 +20,12 @@ export interface WorldState {
   characters: UID[]
   actions: UID[]
   vivInternalState: unknown
+  // Diegetic clock. We advance it once per new action so that the
+  // runtime's `preceded` relation has a strict temporal order to
+  // work with. Without this, all actions would share timestamp 0
+  // and `preceded` would fall back to a partial-order policy that
+  // can match pairs in either chronological direction.
+  turn: number
 }
 
 export interface ChronicleEntry {
@@ -47,6 +53,7 @@ export function createInitialWorld(): WorldState {
     characters: [],
     actions: [],
     vivInternalState: null,
+    turn: 0,
   }
   for (const c of CHARACTERS) {
     state.characters.push(c.id)
@@ -108,10 +115,17 @@ export function makeAdapter(state: WorldState): HostAdapter {
       cur[parts[parts.length - 1]] = value
     },
     saveActionData: (id, data) => {
-      if (state.entities[id] === undefined) state.actions.push(id)
+      // The runtime can call saveActionData more than once for the
+      // same action (its causes/caused fields update as later
+      // actions reference it), so only advance the clock the first
+      // time we see a given action ID.
+      if (state.entities[id] === undefined) {
+        state.actions.push(id)
+        state.turn += 1
+      }
       state.entities[id] = data as EntityRecord
     },
-    getCurrentTimestamp: () => 0,
+    getCurrentTimestamp: () => state.turn,
     getEntityIDs: (type, locationID) => {
       // Stage 1 has only the tavern, so when the runtime asks "who's
       // at locationID?" we hand back everyone of that type.
