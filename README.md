@@ -36,12 +36,13 @@ Open http://localhost:5173/.
 
 ## Re-compiling the .viv sources
 
-If you tweak a `.viv` source you need the Python compiler. Match the runtime's
-schema by pinning to v0.10.x:
+If you tweak a `.viv` source you need the Python compiler. The bundles in
+`public/bundles/` were produced with `viv-compiler==0.12.1`, which emits the
+`schemaVersion: 0.10.1` that the vendored runtime expects.
 
 ```sh
-pip install "viv-compiler==0.10.4"
-for s in 1 2 3 4 5; do
+pip install "viv-compiler==0.12.1"
+for s in 1 2 3 4 5 6 7; do
   vivc -i public/vivsrc/stage$s.viv -o public/bundles/stage$s.json
 done
 ```
@@ -54,13 +55,15 @@ every push to `main`.
 
 ## Stages
 
-The same storyworld -- three regulars at the Crooked Tankard -- grows in
-ambition across five stages:
+The same storyworld -- three friends in a tavern -- grows in ambition
+across seven stages:
 
 | #  | Title         | Introduces                                          |
 |----|---------------|-----------------------------------------------------|
-| 1  | Hello         | actions, roles, effects, gloss/report               |
-| 2  | Conditions    | multi-action choice, conditions, `anywhere` roles   |
-| 3  | Importance    | importance, saliences, narrative weight             |
-| 4  | Place         | location roles, item roles, spatial conditions      |
-| 5  | Consequences  | reactions, reserved actions, precast roles, chains  |
+| 1  | Hello         | actions, roles, report                              |
+| 2  | Conditions    | role conditions, multi-action choice                |
+| 3  | Effects       | effects, world mutation, the host adapter callback  |
+| 4  | Importance    | weighted action selection                           |
+| 5  | Embargoes     | one-shot and time-bounded action lockouts           |
+| 6  | Queries       | named patterns over the chronicle as gates          |
+| 7  | Sifting       | multi-action patterns; finding stories after the fact |

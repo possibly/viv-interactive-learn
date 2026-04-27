@@ -13,6 +13,11 @@ const KEYWORDS = new Set([
   'queue', 'with', 'urgent', 'priority', 'time', 'abandon', 'repeat',
   'default', 'for', 'end', 'if', 'else', 'in', 'and', 'or', 'not',
   'true', 'false', 'null',
+  // Stage 7: sifting + queries
+  'pattern', 'query', 'search', 'sift', 'over', 'inherit', 'chronicle',
+  'actions', 'partners', 'recipients', 'bystanders', 'active', 'present',
+  'preceded', 'caused', 'triggered',
+  'any', 'all', 'none', 'exactly',
 ])
 
 const ROLE_LABELS = new Set([

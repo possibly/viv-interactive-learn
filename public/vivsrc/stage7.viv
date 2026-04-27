@@ -1,0 +1,128 @@
+// Sifting patterns find stories in the chronicle.
+//
+// A pattern names a multi-action shape with role bindings and
+// causal/temporal relations between the actions. The runtime walks
+// the chronicle and returns a match: a specific assignment of
+// entities and action instances that satisfies the pattern.
+//
+// `comfort-arc` is the simplest interesting one: someone teases a
+// target, then someone else comforts that same target later. The
+// pattern's three character roles must bind to distinct entities
+// (entity uniqueness), so the teaser and comforter are guaranteed
+// to be different people.
+//
+// `teases-of` and `cheer-ups-of` are helper queries that let the
+// pattern's action variables draw from a focused pool: only teases
+// involving (@teaser, @target), only cheer_ups involving
+// (@comforter, @target). The condition `@the-tease preceded
+// @the-comfort` requires the comfort to come after the tease in
+// the chronicle.
+
+query greeted-with:
+    roles:
+        @a:
+            as: character
+        @b:
+            as: character
+    action:
+        any: greet
+    active:
+        all: @a, @b
+
+query teases-of:
+    roles:
+        @teaser:
+            as: character
+        @target:
+            as: character
+    action:
+        any: tease
+    initiator:
+        any: @teaser
+    recipients:
+        any: @target
+
+query cheer-ups-of:
+    roles:
+        @helper:
+            as: character
+        @target:
+            as: character
+    action:
+        any: cheer_up
+    initiator:
+        any: @helper
+    recipients:
+        any: @target
+
+action greet:
+    importance: 1
+    embargoes:
+        embargo:
+            time: forever
+            roles: @greeter, @friend
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+action tease:
+    importance: 3
+    conditions:
+        search query greeted-with:
+            over: chronicle
+            with:
+                @a: @teaser
+                @b: @target
+    report: '{@teaser.name} teases {@target.name}'
+    effects:
+        @target.cheerful = false
+    roles:
+        @teaser:
+            as: initiator
+        @target:
+            as: recipient
+
+action cheer_up:
+    importance: 3
+    conditions:
+        search query greeted-with:
+            over: chronicle
+            with:
+                @a: @helper
+                @b: @target
+        @target.cheerful == false
+    report: '{@helper.name} cheers up {@target.name}'
+    effects:
+        @target.cheerful = true
+    roles:
+        @helper:
+            as: initiator
+        @target:
+            as: recipient
+
+pattern comfort-arc:
+    roles:
+        @target:
+            as: character
+        @teaser:
+            as: character
+        @comforter:
+            as: character
+    actions:
+        @the-tease:
+            from: search query teases-of:
+                over: inherit
+                with:
+                    @teaser: @teaser
+                    @target: @target
+        @the-comfort:
+            from: search query cheer-ups-of:
+                over: inherit
+                with:
+                    @helper: @comforter
+                    @target: @target
+    conditions:
+        @the-tease preceded @the-comfort

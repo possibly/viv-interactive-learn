@@ -8,11 +8,14 @@ import Host from './sections/Host'
 import Importance from './sections/Importance'
 import Queries from './sections/Queries'
 import SelectActionWalkthrough from './sections/SelectActionWalkthrough'
+import Sifting from './sections/Sifting'
 import WireRuntime from './sections/WireRuntime'
 import TocNav, { type TocSection } from './sandbox/TocNav'
 import { useVivSources } from './sandbox/useVivSources'
 
-const VIV_KEYS = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6'] as const
+const VIV_KEYS = [
+  'stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7',
+] as const
 
 const TOC_SECTIONS: TocSection[] = [
   { id: 'goal', label: 'What we want our characters to do' },
@@ -25,6 +28,7 @@ const TOC_SECTIONS: TocSection[] = [
   { id: 'importance', label: 'Steering selection with importance' },
   { id: 'embargoes', label: 'Keeping an action from happening twice' },
   { id: 'queries', label: 'Gating actions on the chronicle with queries' },
+  { id: 'sifting', label: 'Finding stories in the chronicle' },
 ]
 
 const INITIAL_IMPORTANCE: Record<string, number> = {
@@ -67,6 +71,7 @@ export default function App() {
       />
       <Embargoes source={sources.stage5} />
       <Queries source={sources.stage6} />
+      <Sifting source={sources.stage7} />
 
       <footer className="page-footer">
         <p className="dim">

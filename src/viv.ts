@@ -56,9 +56,22 @@ export interface SelectActionArgs {
   initiatorID: UID
 }
 
+// runSiftingPattern returns a single match if one is found, else null.
+// A match is a mapping from role names (both pattern roles and the
+// pattern's action variables) to arrays of UIDs. Action variables
+// resolve to action IDs, character roles to character IDs.
+export type SiftingMatch = Record<string, UID[]>
+
+export interface RunSiftingPatternArgs {
+  patternName: string
+  precastBindings?: Record<string, UID[]>
+  searchDomain?: UID
+}
+
 interface VivModule {
   initializeVivRuntime: (args: InitializeArgs) => unknown
   selectAction: (args: SelectActionArgs) => Promise<UID | null>
+  runSiftingPattern: (args: RunSiftingPatternArgs) => Promise<SiftingMatch | null>
   EntityType: Record<string, EntityTypeValue>
 }
 
