@@ -42,7 +42,7 @@ If you tweak a `.viv` source you need the Python compiler. The bundles in
 
 ```sh
 pip install "viv-compiler==0.12.1"
-for s in 1 2 3 4 5 6 7 8; do
+for s in 1 2 3 4 5 6 7 8 9; do
   vivc -i public/vivsrc/stage$s.viv -o public/bundles/stage$s.json
 done
 ```
@@ -56,7 +56,7 @@ every push to `main`.
 ## Stages
 
 The same storyworld -- three friends in a tavern -- grows in ambition
-across eight stages:
+across nine stages:
 
 | #  | Title         | Introduces                                          |
 |----|---------------|-----------------------------------------------------|
@@ -68,3 +68,4 @@ across eight stages:
 | 6  | Queries       | named patterns over the chronicle as gates          |
 | 7  | Sifting       | multi-action patterns; finding stories after the fact |
 | 8  | Reactions     | actions that queue other actions; reserved actions  |
+| 9  | Memory        | per-character salience, saveCharacterMemory, POV sifting |

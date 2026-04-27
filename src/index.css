@@ -1389,6 +1389,174 @@ pre.code.inline-snippet {
   border: 1px dashed var(--accent-border);
 }
 
+/* Stage 9: per-character memory book + POV sifter. */
+.memory-section {
+  margin-bottom: 22px;
+}
+.memory-section:last-child { margin-bottom: 0; }
+.memory-section h4 {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 15px;
+  color: var(--text-h);
+  margin-bottom: 8px;
+}
+.memory-blurb {
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+.chronicle-compact { gap: 3px; }
+
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 720px) {
+  .memory-grid { grid-template-columns: 1fr; }
+}
+.memory-col {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--bg);
+  min-width: 0;
+}
+.memory-col-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--border);
+}
+.memory-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.memory-item {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 4px 6px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  min-width: 0;
+}
+.memory-idx {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.memory-action {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.memory-report {
+  font-family: ui-serif, Georgia, serif;
+  color: var(--text-h);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.memory-salience {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.pov-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pov-row {
+  display: grid;
+  grid-template-columns: minmax(150px, auto) 1fr;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  align-items: center;
+  font-size: 13px;
+}
+.pov-row-empty { opacity: 0.6; }
+.pov-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+.pov-tag {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid;
+}
+.pov-tag-global {
+  color: var(--text-dim);
+  background: var(--code-bg);
+  border-color: var(--border);
+}
+.pov-tag-char {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+.pov-match {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.pov-step {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: ui-serif, Georgia, serif;
+  color: var(--text-h);
+}
+.pov-step code {
+  font-size: 11px;
+  font-family: var(--mono);
+}
+.pov-arrow {
+  color: var(--text-dim);
+  font-weight: 700;
+}
+.pov-empty {
+  font-style: italic;
+  font-size: 12.5px;
+}
+
 /* Stage 8: scenario tabs + selectAction flow visualization. */
 .scenario-tabs {
   display: flex;

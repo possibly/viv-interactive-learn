@@ -58,6 +58,9 @@ export function createInitialWorld(): WorldState {
       // (it checks role-presence by comparing locations). Everyone is
       // in the tavern, so they all share the same location.
       location: 'tavern',
+      // Memories accumulate as the runtime calls saveCharacterMemory
+      // (stage 9 onward); earlier stages just leave this empty.
+      memories: {},
     }
   }
   return state
@@ -130,7 +133,18 @@ export function makeAdapter(state: WorldState): HostAdapter {
     saveVivInternalState: (s) => {
       state.vivInternalState = structuredClone(s)
     },
-    saveCharacterMemory: () => {},
+    saveCharacterMemory: (characterID, actionID, memory) => {
+      // Each character keeps a memory book of actions they were
+      // actively involved in. The runtime calls this once per
+      // active role per action; bystanders aren't tracked unless
+      // a `bystanders` role was declared on the action.
+      if (state.entities[characterID] === undefined) return
+      const ent = state.entities[characterID]
+      if (!ent.memories || typeof ent.memories !== 'object') {
+        ent.memories = {}
+      }
+      ;(ent.memories as Record<UID, unknown>)[actionID] = memory
+    },
     saveItemInscriptions: () => {},
     debug: { validateAPICalls: true, watchlists: {} },
   }

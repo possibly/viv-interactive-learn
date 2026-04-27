@@ -1,0 +1,161 @@
+// Stage 9: per-character memory and salience.
+//
+// Saliences declare how memorable an action is from each role's
+// perspective. The teaser feels "I just teased somebody" at
+// salience 3; the target feels it at salience 5; a bystander at
+// the default. The runtime passes each character's per-action
+// memory to the host's saveCharacterMemory adapter callback.
+//
+// The same comfort-arc pattern, when run with searchDomain set
+// to a specific character, sifts only that character's memories.
+// So the same chronicle produces different stories depending on
+// whose head you're looking through.
+
+query greeted-with:
+    roles:
+        @a:
+            as: character
+        @b:
+            as: character
+    action:
+        any: greet
+    active:
+        all: @a, @b
+
+query teases-of:
+    roles:
+        @teaser:
+            as: character
+        @target:
+            as: character
+    action:
+        any: tease
+    initiator:
+        any: @teaser
+    recipients:
+        any: @target
+
+query cheer-ups-of:
+    roles:
+        @helper:
+            as: character
+        @target:
+            as: character
+    action:
+        any: cheer_up
+    initiator:
+        any: @helper
+    recipients:
+        any: @target
+
+action greet:
+    importance: 1
+    saliences:
+        default: 1
+        roles:
+            @greeter: 2
+            @friend: 2
+    embargoes:
+        embargo:
+            time: forever
+            roles: @greeter, @friend
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+action tease:
+    importance: 3
+    saliences:
+        default: 1
+        roles:
+            @teaser: 3
+            @target: 5
+    conditions:
+        search query greeted-with:
+            over: chronicle
+            with:
+                @a: @teaser
+                @b: @target
+    report: '{@teaser.name} teases {@target.name}'
+    effects:
+        @target.cheerful = false
+    reactions:
+        queue action retaliate:
+            with:
+                @avenger: @target
+                @bully: @teaser
+    roles:
+        @teaser:
+            as: initiator
+        @target:
+            as: recipient
+
+action cheer_up:
+    importance: 3
+    saliences:
+        default: 1
+        roles:
+            @helper: 4
+            @target: 5
+    conditions:
+        search query greeted-with:
+            over: chronicle
+            with:
+                @a: @helper
+                @b: @target
+        @target.cheerful == false
+    report: '{@helper.name} cheers up {@target.name}'
+    effects:
+        @target.cheerful = true
+    roles:
+        @helper:
+            as: initiator
+        @target:
+            as: recipient
+
+reserved action retaliate:
+    importance: 5
+    saliences:
+        default: 1
+        roles:
+            @avenger: 4
+            @bully: 5
+    embargoes:
+        embargo:
+            time: forever
+            roles: @avenger, @bully
+    report: '{@avenger.name} gets back at {@bully.name}'
+    effects:
+        @bully.cheerful = false
+    roles:
+        @avenger:
+            as: initiator
+        @bully:
+            as: recipient
+
+pattern comfort-arc:
+    roles:
+        @target:
+            as: character
+        @teaser:
+            as: character
+        @comforter:
+            as: character
+    actions:
+        @the-tease:
+            from: search query teases-of:
+                over: inherit
+                with:
+                    @teaser: @teaser
+                    @target: @target
+        @the-comfort:
+            from: search query cheer-ups-of:
+                over: inherit
+                with:
+                    @helper: @comforter
+                    @target: @target
+    conditions:
+        @the-tease preceded @the-comfort
