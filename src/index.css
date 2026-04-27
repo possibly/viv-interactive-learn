@@ -1389,6 +1389,71 @@ pre.code.inline-snippet {
   border: 1px dashed var(--accent-border);
 }
 
+/* Stage 8: per-character queue snapshot + causal-link badges. */
+.queue-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+}
+.queue-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.queue-empty {
+  color: var(--text-dim);
+  font-style: italic;
+  font-size: 12px;
+}
+.queue-pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  color: var(--text);
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.queue-pill strong {
+  color: var(--text-h);
+  font-weight: 700;
+}
+.queue-pill-from {
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.turn-cause-tag,
+.turn-queue-tag {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px dashed;
+}
+.turn-cause-tag {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+.turn-queue-tag {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
 /* Stage 7: side-by-side chronicle and matched-stories layout. */
 .sift-grid {
   display: grid;

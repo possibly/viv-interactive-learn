@@ -7,6 +7,7 @@ import Goal from './sections/Goal'
 import Host from './sections/Host'
 import Importance from './sections/Importance'
 import Queries from './sections/Queries'
+import Reactions from './sections/Reactions'
 import SelectActionWalkthrough from './sections/SelectActionWalkthrough'
 import Sifting from './sections/Sifting'
 import WireRuntime from './sections/WireRuntime'
@@ -14,7 +15,7 @@ import TocNav, { type TocSection } from './sandbox/TocNav'
 import { useVivSources } from './sandbox/useVivSources'
 
 const VIV_KEYS = [
-  'stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7',
+  'stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6', 'stage7', 'stage8',
 ] as const
 
 const TOC_SECTIONS: TocSection[] = [
@@ -29,6 +30,7 @@ const TOC_SECTIONS: TocSection[] = [
   { id: 'embargoes', label: 'Keeping an action from happening twice' },
   { id: 'queries', label: 'Gating actions on the chronicle with queries' },
   { id: 'sifting', label: 'Finding stories in the chronicle' },
+  { id: 'reactions', label: 'Actions that cause actions' },
 ]
 
 const INITIAL_IMPORTANCE: Record<string, number> = {
@@ -72,6 +74,7 @@ export default function App() {
       <Embargoes source={sources.stage5} />
       <Queries source={sources.stage6} />
       <Sifting source={sources.stage7} />
+      <Reactions source={sources.stage8} />
 
       <footer className="page-footer">
         <p className="dim">

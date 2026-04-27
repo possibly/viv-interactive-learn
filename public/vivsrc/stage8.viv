@@ -1,0 +1,142 @@
+// Reactions chain actions together.
+//
+// `tease` now declares a `reactions` block. Whenever a tease fires,
+// the runtime queues a `retaliate` for the target character with
+// the bindings flipped: the target becomes the avenger, the teaser
+// becomes the bully. The next time that target gets a turn, their
+// queued retaliate is targeted ahead of any general action.
+//
+// `retaliate` is `reserved` because it precasts a non-initiator
+// role (@bully). Only reactions and selectors can target reserved
+// actions; you can't get one by general action selection. A
+// per-pair forever embargo keeps the same retaliate from firing
+// twice.
+
+query greeted-with:
+    roles:
+        @a:
+            as: character
+        @b:
+            as: character
+    action:
+        any: greet
+    active:
+        all: @a, @b
+
+query teases-of:
+    roles:
+        @teaser:
+            as: character
+        @target:
+            as: character
+    action:
+        any: tease
+    initiator:
+        any: @teaser
+    recipients:
+        any: @target
+
+query cheer-ups-of:
+    roles:
+        @helper:
+            as: character
+        @target:
+            as: character
+    action:
+        any: cheer_up
+    initiator:
+        any: @helper
+    recipients:
+        any: @target
+
+action greet:
+    importance: 1
+    embargoes:
+        embargo:
+            time: forever
+            roles: @greeter, @friend
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+action tease:
+    importance: 3
+    conditions:
+        search query greeted-with:
+            over: chronicle
+            with:
+                @a: @teaser
+                @b: @target
+    report: '{@teaser.name} teases {@target.name}'
+    effects:
+        @target.cheerful = false
+    reactions:
+        queue action retaliate:
+            with:
+                @avenger: @target
+                @bully: @teaser
+    roles:
+        @teaser:
+            as: initiator
+        @target:
+            as: recipient
+
+action cheer_up:
+    importance: 3
+    conditions:
+        search query greeted-with:
+            over: chronicle
+            with:
+                @a: @helper
+                @b: @target
+        @target.cheerful == false
+    report: '{@helper.name} cheers up {@target.name}'
+    effects:
+        @target.cheerful = true
+    roles:
+        @helper:
+            as: initiator
+        @target:
+            as: recipient
+
+reserved action retaliate:
+    importance: 5
+    embargoes:
+        embargo:
+            time: forever
+            roles: @avenger, @bully
+    report: '{@avenger.name} gets back at {@bully.name}'
+    effects:
+        @bully.cheerful = false
+    roles:
+        @avenger:
+            as: initiator
+        @bully:
+            as: recipient
+
+pattern comfort-arc:
+    roles:
+        @target:
+            as: character
+        @teaser:
+            as: character
+        @comforter:
+            as: character
+    actions:
+        @the-tease:
+            from: search query teases-of:
+                over: inherit
+                with:
+                    @teaser: @teaser
+                    @target: @target
+        @the-comfort:
+            from: search query cheer-ups-of:
+                over: inherit
+                with:
+                    @helper: @comforter
+                    @target: @target
+    conditions:
+        @the-tease preceded @the-comfort
