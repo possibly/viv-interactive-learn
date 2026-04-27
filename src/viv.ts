@@ -56,6 +56,17 @@ export interface SelectActionArgs {
   initiatorID: UID
 }
 
+// attemptAction lets the host force a specific action to fire with
+// specified bindings. Useful for deterministic demo setup; in real
+// use it covers things like player-driven actions.
+export interface AttemptActionArgs {
+  actionName: string
+  initiatorID?: UID
+  precastBindings?: Record<string, UID[]>
+  causes?: UID[]
+  suppressConditions?: true
+}
+
 // runSiftingPattern returns a single match if one is found, else null.
 // A match is a mapping from role names (both pattern roles and the
 // pattern's action variables) to arrays of UIDs. Action variables
@@ -71,6 +82,7 @@ export interface RunSiftingPatternArgs {
 interface VivModule {
   initializeVivRuntime: (args: InitializeArgs) => unknown
   selectAction: (args: SelectActionArgs) => Promise<UID | null>
+  attemptAction: (args: AttemptActionArgs) => Promise<UID | null>
   runSiftingPattern: (args: RunSiftingPatternArgs) => Promise<SiftingMatch | null>
   EntityType: Record<string, EntityTypeValue>
 }

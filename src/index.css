@@ -1389,6 +1389,141 @@ pre.code.inline-snippet {
   border: 1px dashed var(--accent-border);
 }
 
+/* Stage 8: scenario tabs + selectAction flow visualization. */
+.scenario-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1 1 auto;
+}
+.scenario-tab {
+  font: inherit;
+  font-size: 12.5px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+.scenario-tab:hover:not(:disabled) {
+  background: var(--code-bg);
+  color: var(--text-h);
+}
+.scenario-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.scenario-tab:disabled { opacity: 0.5; cursor: not-allowed; }
+.scenario-blurb {
+  font-size: 14px;
+  margin: 14px 0 16px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+}
+
+.flow-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.flow-step {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--bg);
+  position: relative;
+}
+.flow-step + .flow-step::before {
+  content: '↓';
+  position: absolute;
+  top: -14px;
+  left: 22px;
+  color: var(--text-dim);
+  font-size: 16px;
+}
+.flow-step header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.flow-step.flow-step-active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+.flow-step.flow-step-skipped {
+  opacity: 0.55;
+}
+.flow-step.flow-step-final {
+  border-color: var(--good);
+  background: var(--good-bg);
+}
+.flow-step .step-num {
+  font-weight: 700;
+}
+.flow-step.flow-step-active .step-num {
+  background: var(--accent);
+  color: white;
+}
+.flow-step.flow-step-final .step-num {
+  background: var(--good);
+  color: white;
+}
+.flow-status {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.flow-status-pass {
+  color: var(--good);
+  background: var(--good-bg);
+  border-color: var(--good);
+}
+.flow-status-fail {
+  color: var(--error);
+  background: var(--error-bg);
+  border-color: var(--error);
+}
+.flow-status-skip {
+  color: var(--text-dim);
+  background: var(--code-bg);
+  border-color: var(--border);
+}
+.flow-step-body {
+  margin-top: 8px;
+  font-size: 13.5px;
+}
+.flow-detail {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text);
+}
+.flow-queue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.flow-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 /* Stage 8: per-character queue snapshot + causal-link badges. */
 .queue-row {
   display: flex;

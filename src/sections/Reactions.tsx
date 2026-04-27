@@ -1,3 +1,4 @@
+import ActionSelectionFlow from '../sandbox/ActionSelectionFlow'
 import Stage8Demo from '../sandbox/Stage8Demo'
 import { HighlightedViv } from '../sandbox/highlight'
 
@@ -32,9 +33,7 @@ export default function Reactions({ source }: Props) {
           teaser becomes the bully).
         </p>
         <HighlightedViv code={source} />
-        <p>
-          A few things to notice:
-        </p>
+        <p>A few things to notice:</p>
         <ul>
           <li>
             <strong>retaliate is <code>reserved</code></strong>. Reserved
@@ -47,7 +46,7 @@ export default function Reactions({ source }: Props) {
           <li>
             <strong>retaliate carries its own embargo</strong>. It can fire
             at most once per (avenger, bully) pair. Tease's reaction will
-            still queue duplicates if Alice teases Bob twice, but the
+            still queue duplicates if Carol teases Bob twice, but the
             second retaliate fails its targeting check on the embargo and
             the runtime falls back to general selection.
           </li>
@@ -59,6 +58,50 @@ export default function Reactions({ source }: Props) {
             ahead of general action selection.
           </li>
         </ul>
+      </section>
+
+      <section className="prose">
+        <h3>How the queue affects action selection</h3>
+        <p>
+          The queue changes what <code>selectAction</code> does, but only
+          a little. The contract is:
+        </p>
+        <ol>
+          <li>
+            <strong>Target the character's queued actions first.</strong>
+            {' '}If one passes its conditions and embargoes, fire it and
+            return.
+          </li>
+          <li>
+            <strong>Otherwise, run general action selection</strong> --
+            the four-step algorithm we walked through earlier.
+          </li>
+        </ol>
+        <p>
+          So a queued action is not a <em>guarantee</em>; it is a
+          first-pick offered to the targeting machinery. If targeting
+          rejects it (its conditions evaluate false, an embargo applies,
+          a casting pool is empty), the runtime keeps going.
+        </p>
+        <p>
+          Below: three deterministic scenarios, each running one{' '}
+          <code>selectAction</code> for Bob. The world setup is forced
+          via <code>attemptAction</code> so the only thing that varies
+          is what is sitting in Bob's queue and whether the embargo is
+          already up.
+        </p>
+        <ActionSelectionFlow />
+      </section>
+
+      <section className="prose">
+        <h3>Watch the queue fill and drain</h3>
+        <p>
+          Now back to a stochastic run. Ten turns rotating through Alice,
+          Bob, Carol. Each row shows the active character's queue at the
+          start of the turn, what got picked, and (if it was a tease)
+          what just got pushed onto the target's queue. A retaliate row
+          points back to the tease turn that produced it.
+        </p>
         <p>
           On the chronicle side, every action record now carries causal
           metadata. <code>retaliate</code>'s <code>causes</code> field
@@ -67,17 +110,6 @@ export default function Reactions({ source }: Props) {
           is what powers <code>caused</code> in queries and{' '}
           <code>caused</code> as a relation in sifting patterns: the
           chronicle is now a graph, not just a list.
-        </p>
-      </section>
-
-      <section className="prose">
-        <h3>Watch the queue fill and drain</h3>
-        <p>
-          Ten turns rotating through Alice, Bob, Carol. Each row shows
-          the active character's queue at the start of the turn, what
-          got picked, and (if it was a tease) what just got pushed onto
-          the target's queue. A retaliate row points back to the tease
-          turn that produced it.
         </p>
       </section>
 
