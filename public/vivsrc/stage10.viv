@@ -1,0 +1,190 @@
+// Stage 10: action selectors.
+//
+// An action selector is a named menu of candidate actions plus a
+// policy for choosing among them. `target in order:` is the most
+// useful one for cascades: it tries each candidate in turn and
+// fires the first one whose targeting succeeds. If a candidate's
+// conditions or embargoes block it, the runtime moves on to the
+// next.
+//
+// We replace tease's direct retaliate reaction with a queued
+// `respond-to-tease` selector. The selector tries `retaliate`
+// first; if retaliate's per-pair embargo is up, it falls through
+// to `pout` -- a new solo action where the target sulks.
+
+query greeted-with:
+    roles:
+        @a:
+            as: character
+        @b:
+            as: character
+    action:
+        any: greet
+    active:
+        all: @a, @b
+
+query teases-of:
+    roles:
+        @teaser:
+            as: character
+        @target:
+            as: character
+    action:
+        any: tease
+    initiator:
+        any: @teaser
+    recipients:
+        any: @target
+
+query cheer-ups-of:
+    roles:
+        @helper:
+            as: character
+        @target:
+            as: character
+    action:
+        any: cheer_up
+    initiator:
+        any: @helper
+    recipients:
+        any: @target
+
+action greet:
+    importance: 1
+    saliences:
+        default: 1
+        roles:
+            @greeter: 2
+            @friend: 2
+    embargoes:
+        embargo:
+            time: forever
+            roles: @greeter, @friend
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+action tease:
+    importance: 3
+    saliences:
+        default: 1
+        roles:
+            @teaser: 3
+            @target: 5
+    conditions:
+        search query greeted-with:
+            over: chronicle
+            with:
+                @a: @teaser
+                @b: @target
+    report: '{@teaser.name} teases {@target.name}'
+    effects:
+        @target.cheerful = false
+    reactions:
+        queue action-selector respond-to-tease:
+            with:
+                @hurt: @target
+                @bully: @teaser
+    roles:
+        @teaser:
+            as: initiator
+        @target:
+            as: recipient
+
+action cheer_up:
+    importance: 3
+    saliences:
+        default: 1
+        roles:
+            @helper: 4
+            @target: 5
+    conditions:
+        search query greeted-with:
+            over: chronicle
+            with:
+                @a: @helper
+                @b: @target
+        @target.cheerful == false
+    report: '{@helper.name} cheers up {@target.name}'
+    effects:
+        @target.cheerful = true
+    roles:
+        @helper:
+            as: initiator
+        @target:
+            as: recipient
+
+reserved action retaliate:
+    importance: 5
+    saliences:
+        default: 1
+        roles:
+            @avenger: 4
+            @bully: 5
+    embargoes:
+        embargo:
+            time: forever
+            roles: @avenger, @bully
+    report: '{@avenger.name} gets back at {@bully.name}'
+    effects:
+        @bully.cheerful = false
+    roles:
+        @avenger:
+            as: initiator
+        @bully:
+            as: recipient
+
+reserved action pout:
+    importance: 2
+    saliences:
+        default: 1
+        roles:
+            @sulker: 4
+    report: '{@sulker.name} sulks in the corner'
+    effects:
+        @sulker.cheerful = false
+    roles:
+        @sulker:
+            as: initiator
+
+reserved action-selector respond-to-tease:
+    roles:
+        @hurt:
+            as: initiator
+        @bully:
+            as: character, precast
+    target in order:
+        retaliate:
+            with partial:
+                @avenger: @hurt
+                @bully: @bully
+        pout:
+            with partial:
+                @sulker: @hurt
+
+pattern comfort-arc:
+    roles:
+        @target:
+            as: character
+        @teaser:
+            as: character
+        @comforter:
+            as: character
+    actions:
+        @the-tease:
+            from: search query teases-of:
+                over: inherit
+                with:
+                    @teaser: @teaser
+                    @target: @target
+        @the-comfort:
+            from: search query cheer-ups-of:
+                over: inherit
+                with:
+                    @helper: @comforter
+                    @target: @target
+    conditions:
+        @the-tease preceded @the-comfort

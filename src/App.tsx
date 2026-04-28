@@ -10,6 +10,7 @@ import Memory from './sections/Memory'
 import Queries from './sections/Queries'
 import Reactions from './sections/Reactions'
 import SelectActionWalkthrough from './sections/SelectActionWalkthrough'
+import Selectors from './sections/Selectors'
 import Sifting from './sections/Sifting'
 import WireRuntime from './sections/WireRuntime'
 import TocNav, { type TocSection } from './sandbox/TocNav'
@@ -17,7 +18,7 @@ import { useVivSources } from './sandbox/useVivSources'
 
 const VIV_KEYS = [
   'stage1', 'stage2', 'stage3', 'stage4', 'stage5',
-  'stage6', 'stage7', 'stage8', 'stage9',
+  'stage6', 'stage7', 'stage8', 'stage9', 'stage10',
 ] as const
 
 const TOC_SECTIONS: TocSection[] = [
@@ -34,6 +35,7 @@ const TOC_SECTIONS: TocSection[] = [
   { id: 'sifting', label: 'Finding stories in the chronicle' },
   { id: 'reactions', label: 'Actions that cause actions' },
   { id: 'memory', label: "What's in a character's head" },
+  { id: 'selectors', label: 'Many candidates, one policy' },
 ]
 
 const INITIAL_IMPORTANCE: Record<string, number> = {
@@ -79,6 +81,7 @@ export default function App() {
       <Sifting source={sources.stage7} />
       <Reactions source={sources.stage8} />
       <Memory source={sources.stage9} />
+      <Selectors source={sources.stage10} />
 
       <footer className="page-footer">
         <p className="dim">
