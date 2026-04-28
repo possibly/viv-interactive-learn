@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { loadViv, type UID } from '../viv'
+import type { ContentBundle } from '../viv'
 import {
   actionRecord,
   createStage11World,
@@ -147,20 +148,34 @@ export default function Stage11Demo() {
     report: string
   } | null>(null)
   const worldRef = useRef<WorldState>(createStage11World(STAGE11_DEFAULT_RELATIONS))
+  const bundleRef = useRef<ContentBundle | null>(null)
+
+  // Bind the runtime to *this* demo's world on demand. Other demos
+  // on the page also call initializeVivRuntime, and the runtime is
+  // a single global -- so by the time the user clicks "Step a turn"
+  // here, a later-mounted demo has likely stomped the global with
+  // its own adapter. Re-initialising right before each runtime call
+  // keeps our adapter (and worldRef) authoritative for our work.
+  const bindRuntime = async () => {
+    const viv = await loadViv()
+    let bundle = bundleRef.current
+    if (!bundle) {
+      bundle = (await fetch(STAGE11_BUNDLE_PATH).then((r) => r.json())) as ContentBundle
+      bundleRef.current = bundle
+    }
+    viv.initializeVivRuntime({
+      contentBundle: bundle,
+      adapter: makeAdapter(worldRef.current),
+    })
+    return viv
+  }
 
   useEffect(() => {
     let cancelled = false
     void (async () => {
       try {
-        const [viv, bundle] = await Promise.all([
-          loadViv(),
-          fetch(STAGE11_BUNDLE_PATH).then((r) => r.json()),
-        ])
+        await bindRuntime()
         if (cancelled) return
-        viv.initializeVivRuntime({
-          contentBundle: bundle,
-          adapter: makeAdapter(worldRef.current),
-        })
         setVivReady(true)
       } catch (e) {
         if (cancelled) return
@@ -170,6 +185,7 @@ export default function Stage11Demo() {
     return () => {
       cancelled = true
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Push relation edits into the live world the runtime will read.
@@ -208,12 +224,7 @@ export default function Stage11Demo() {
     setTurnIndex(0)
     setLastTurn(null)
     try {
-      const viv = await loadViv()
-      const bundle = await fetch(STAGE11_BUNDLE_PATH).then((r) => r.json())
-      viv.initializeVivRuntime({
-        contentBundle: bundle,
-        adapter: makeAdapter(worldRef.current),
-      })
+      await bindRuntime()
     } catch (e) {
       setVivErr(e instanceof Error ? e.message : String(e))
     }
@@ -222,7 +233,9 @@ export default function Stage11Demo() {
   const stepTurn = async () => {
     const initiator = STAGE11_CHARACTERS[turnIndex % STAGE11_CHARACTERS.length].id
     try {
-      const viv = await loadViv()
+      // Re-bind so a sibling demo that ran initializeVivRuntime more
+      // recently doesn't end up the recipient of our selectAction call.
+      const viv = await bindRuntime()
       const actionID = await viv.selectAction({ initiatorID: initiator })
       if (!actionID) {
         setLastTurn({ initiator, actionName: null, report: '(no action eligible)' })
