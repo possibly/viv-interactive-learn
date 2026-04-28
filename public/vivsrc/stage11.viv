@@ -1,0 +1,76 @@
+// Stage 11: tropes -- naming a relational pattern.
+//
+// Up to now, every action's conditions have been written inline.
+// That's fine when each pattern shows up once, but the moment two
+// actions need the same relational check -- "these two characters
+// actively dislike each other", "this character looks up to that
+// one" -- you start duplicating logic, and inevitably one copy
+// drifts while the other stays put.
+//
+// A *trope* is a named, parameterised bundle of conditions. You
+// declare the roles it relates and the statements that must hold
+// over them. Anywhere an action (or a query, or a sifting pattern)
+// would otherwise inline that check, it can write
+// `fit trope <name>` instead and pass bindings.
+//
+// We give the friends two list properties -- `dislikes` and
+// `admires` -- each a roster of other character IDs. Two tropes
+// capture our patterns; two new actions gate on them. Greet stays
+// unconditional as the neutral baseline, so there's always
+// *something* eligible.
+
+trope rivalry:
+    roles:
+        @a:
+            as: character
+        @b:
+            as: character
+    conditions:
+        @b in @a.dislikes
+        @a in @b.dislikes
+
+trope admiration:
+    roles:
+        @admirer:
+            as: character
+        @idol:
+            as: character
+    conditions:
+        @idol in @admirer.admires
+
+action greet:
+    importance: 1
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+action snipe:
+    importance: 3
+    report: '{@aggressor.name} snipes at {@rival.name}'
+    conditions:
+        fit trope rivalry:
+            with:
+                @a: @aggressor
+                @b: @rival
+    roles:
+        @aggressor:
+            as: initiator
+        @rival:
+            as: recipient
+
+action compliment:
+    importance: 2
+    report: '{@admirer.name} compliments {@idol.name}'
+    conditions:
+        fit trope admiration:
+            with:
+                @admirer: @admirer
+                @idol: @idol
+    roles:
+        @admirer:
+            as: initiator
+        @idol:
+            as: recipient

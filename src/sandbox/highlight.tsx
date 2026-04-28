@@ -18,6 +18,8 @@ const KEYWORDS = new Set([
   'actions', 'partners', 'recipients', 'bystanders', 'active', 'present',
   'preceded', 'caused', 'triggered',
   'any', 'all', 'none', 'exactly',
+  // Stage 11: tropes
+  'trope', 'fit',
 ])
 
 const ROLE_LABELS = new Set([

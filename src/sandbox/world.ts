@@ -86,8 +86,42 @@ export function createStage3World(): WorldState {
   return createStage2World()
 }
 
+// Stage 11 (tropes): each character carries two list properties --
+// `dislikes` and `admires` -- listing the IDs of the other
+// characters they feel that way about. Empty by default so neither
+// trope fits out of the box; the user toggles relationships on to
+// see eligibility change.
+export interface RelationLists {
+  dislikes: UID[]
+  admires: UID[]
+}
+
+export type RelationMatrix = Record<UID, RelationLists>
+
+export const STAGE11_DEFAULT_RELATIONS: RelationMatrix = {
+  alice: { dislikes: [], admires: [] },
+  bob: { dislikes: [], admires: [] },
+  carol: { dislikes: [], admires: [] },
+}
+
+export function createStage11World(
+  relations: RelationMatrix = STAGE11_DEFAULT_RELATIONS,
+): WorldState {
+  const state = createInitialWorld()
+  for (const id of state.characters) {
+    state.entities[id].dislikes = [...(relations[id]?.dislikes ?? [])]
+    state.entities[id].admires = [...(relations[id]?.admires ?? [])]
+  }
+  return state
+}
+
 export const STAGE2_CHARACTERS: Array<{ id: UID; name: string; cheerful: boolean }> =
   CHARACTERS.map((c) => ({ ...c, cheerful: STAGE2_CHEERFUL[c.id] ?? false }))
+
+export const STAGE11_CHARACTERS: Array<{ id: UID; name: string }> = CHARACTERS.map((c) => ({
+  id: c.id,
+  name: c.name,
+}))
 
 export function makeAdapter(state: WorldState): HostAdapter {
   return {
