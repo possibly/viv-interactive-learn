@@ -1,25 +1,9 @@
 import SelectorCascadeDemo from '../sandbox/SelectorCascadeDemo'
-import { HighlightedTs, HighlightedViv } from '../sandbox/highlight'
+import { HighlightedViv } from '../sandbox/highlight'
 
 interface Props {
   source: string
 }
-
-const HOST_SNIPPET = `// No new runtime call. Same selectAction as before.
-//
-// On Bob's turn, the runtime sees the respond-to-tease selector
-// in his queue, walks the candidates in order, fires whichever
-// passes targeting first, and returns that action's ID -- not
-// the selector's. From the host's perspective, a selector is
-// just a more elaborate way for a reaction to specify what to do
-// next; the host doesn't see the dispatch.
-
-const actionID = await selectAction({ initiatorID: "bob" });
-
-// actionID points at the action that fired (retaliate or pout),
-// never at the selector. The chronicle never contains a selector
-// entry, only the chosen action.
-`
 
 const GENERAL_SELECTION_SNIPPET = `// A non-reserved action selector. Drop the \`reserved\` marker
 // and the runtime will offer this selector to general action
@@ -162,7 +146,6 @@ export default function Selectors({ source }: Props) {
           selector's. The chronicle records actions; a selector is
           dispatch logic and leaves no trace of its own.
         </p>
-        <HighlightedTs code={HOST_SNIPPET} />
       </section>
 
       <section className="prose">
