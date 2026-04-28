@@ -185,7 +185,6 @@ export default function Stage11Demo() {
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Push relation edits into the live world the runtime will read.
@@ -217,9 +216,16 @@ export default function Stage11Demo() {
     setRelations(cloneRelations(preset))
   }
 
-  const reset = async () => {
-    worldRef.current = createStage11World(STAGE11_DEFAULT_RELATIONS)
-    setRelations(cloneRelations(STAGE11_DEFAULT_RELATIONS))
+  // Resets only the chronicle: drops every action record and the
+  // runtime's internal state (so the `greeted-with` query for
+  // compliment goes back to having no matches), but leaves the
+  // user's hand-tuned dislikes/admires alone.
+  const resetChronicle = async () => {
+    const w = worldRef.current
+    for (const aid of w.actions) delete w.entities[aid]
+    w.actions = []
+    w.vivInternalState = null
+    w.turn = 0
     setChronicle([])
     setTurnIndex(0)
     setLastTurn(null)
@@ -228,6 +234,12 @@ export default function Stage11Demo() {
     } catch (e) {
       setVivErr(e instanceof Error ? e.message : String(e))
     }
+  }
+
+  // Resets only the relationship grid back to the empty default.
+  // The chronicle is left intact so the user can compare runs.
+  const resetRelationships = () => {
+    setRelations(cloneRelations(STAGE11_DEFAULT_RELATIONS))
   }
 
   const stepTurn = async () => {
@@ -443,8 +455,22 @@ export default function Stage11Demo() {
             <button type="button" onClick={stepTurn} disabled={!vivReady}>
               Step a turn
             </button>
-            <button type="button" className="ghost" onClick={reset}>
-              Reset relationships + chronicle
+            <button
+              type="button"
+              className="ghost"
+              onClick={resetChronicle}
+              disabled={!vivReady || (chronicle.length === 0 && turnIndex === 0)}
+              title="Empty the chronicle and the runtime's internal state; keep the relationship grid"
+            >
+              Reset chronicle
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              onClick={resetRelationships}
+              title="Clear all dislikes/admires; keep the chronicle"
+            >
+              Reset relationships
             </button>
           </div>
         </header>

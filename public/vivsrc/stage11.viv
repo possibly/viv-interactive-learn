@@ -18,6 +18,24 @@
 // capture our patterns; two new actions gate on them. Greet stays
 // unconditional as the neutral baseline, so there's always
 // *something* eligible.
+//
+// Compliment additionally reuses the `greeted-with` chronicle
+// query from earlier stages: a compliment only fires once the
+// admirer and idol have actually said hello at least once. The
+// trope captures relational *fit*; the query enforces relational
+// *history*. They compose cleanly because both are just
+// statements in the same conditions block.
+
+query greeted-with:
+    roles:
+        @a:
+            as: character
+        @b:
+            as: character
+    action:
+        any: greet
+    active:
+        all: @a, @b
 
 trope rivalry:
     roles:
@@ -69,6 +87,11 @@ action compliment:
             with:
                 @admirer: @admirer
                 @idol: @idol
+        search query greeted-with:
+            over: chronicle
+            with:
+                @a: @admirer
+                @b: @idol
     roles:
         @admirer:
             as: initiator

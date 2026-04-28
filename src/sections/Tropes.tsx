@@ -43,6 +43,19 @@ export default function Tropes({ source }: Props) {
           <code>snipe</code> and <code>compliment</code>, gate on them;{' '}
           <code>greet</code> stays unconditional as the neutral baseline.
         </p>
+        <p>
+          We also bring back the <a href="#queries">
+          <code>greeted-with</code> chronicle query
+          </a>{' '}
+          from the queries section as a second condition on{' '}
+          <code>compliment</code>. The trope captures relational{' '}
+          <em>fit</em>; the query enforces relational <em>history</em>.
+          Together they read as: "the admirer must look up to the idol{' '}
+          <strong>and</strong> the two of them must already have said hello
+          at least once". They compose cleanly because both are just
+          statements in the same conditions block; the runtime AND-s them
+          like any other pair of conditions.
+        </p>
         <HighlightedViv code={source} />
         <p>A few details to notice:</p>
         <ul>
@@ -93,11 +106,23 @@ export default function Tropes({ source }: Props) {
         </p>
         <p>
           A few things to try: dislike-toggle Alice ↔ Bob both directions
-          and watch <code>snipe</code> become eligible only between the
-          two of them; have Carol admire Alice and watch the chronicle
-          start filling with compliments on Carol's turn; flip every pair
-          to mutual dislike and watch the chronicle fill with snipes
-          regardless of who's up.
+          and watch <code>snipe</code> become eligible only between them;
+          have Carol admire Alice and step a few turns -- you'll see a
+          greet between them land in the chronicle first, and only{' '}
+          <em>then</em> can compliment fire on a later Carol turn (because
+          the <code>greeted-with</code> query gate has a match to point
+          at); flip every pair to mutual dislike and watch the chronicle
+          fill with snipes regardless of who's up.
+        </p>
+        <p className="dim">
+          The two reset buttons are deliberately separate.{' '}
+          <em>Reset chronicle</em> empties the action history (and the
+          runtime's internal state, so <code>greeted-with</code> matches
+          go back to zero) but leaves your relationship grid intact.{' '}
+          <em>Reset relationships</em> clears the dislikes/admires
+          toggles but leaves the chronicle untouched, so you can compare
+          how the same accumulated history plays out under a fresh
+          relationship configuration.
         </p>
         <Stage11Demo />
       </section>
