@@ -2233,3 +2233,224 @@ pre.code.inline-snippet {
   gap: 8px;
   flex-wrap: wrap;
 }
+
+/* ===== Stage 12: Plans (multi-phase reaction tape) ===== */
+
+.plan-demo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.plan-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.plan-trigger-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.plan-trigger-label {
+  font-size: 13px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.plan-trigger-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.plan-trigger-btn {
+  font: inherit;
+  font-size: 12px;
+  font-family: var(--mono);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+.plan-trigger-btn:hover:not(:disabled) {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+.plan-trigger-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.plan-tracker {
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 12px 14px 14px;
+}
+.plan-tracker h4 {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px;
+  color: var(--text-h);
+  margin-bottom: 8px;
+}
+.plan-empty { font-size: 13px; }
+
+.plan-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.plan-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px 12px;
+  background: var(--bg);
+  transition: border-color 200ms, opacity 200ms;
+}
+.plan-card-done {
+  opacity: 0.55;
+  border-style: dashed;
+}
+.plan-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.plan-card-name {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.plan-card-bindings {
+  font-size: 13px;
+  color: var(--text);
+}
+.plan-card-bindings code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.plan-card-status {
+  margin-left: auto;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.plan-card-done .plan-card-status {
+  color: var(--good);
+}
+
+.plan-tape {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+@media (max-width: 640px) {
+  .plan-tape { grid-template-columns: 1fr; }
+}
+.plan-phase {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px 9px;
+  background: var(--panel-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12.5px;
+  transition: border-color 200ms, background 200ms, opacity 200ms;
+}
+.phase-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.phase-name {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--text-h);
+  font-size: 13px;
+}
+.phase-action {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+}
+.phase-action code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--text);
+  font-size: 11.5px;
+}
+.plan-phase.phase-current {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  box-shadow: 0 0 0 1px var(--accent-border) inset;
+}
+.plan-phase.phase-current .phase-name { color: var(--accent); }
+.plan-phase.phase-fired {
+  background: var(--good-bg);
+  border-color: var(--good);
+  opacity: 0.85;
+}
+.plan-phase.phase-fired::after {
+  content: '✓ fired';
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--good);
+  font-weight: 700;
+}
+
+.plan-chronicle .strip { position: relative; }
+.phase-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+.tag-queued {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+.tag-phase {
+  background: var(--code-bg);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.tag-phase-stew { color: #a78bfa; border-color: rgba(167, 139, 250, 0.4); }
+.tag-phase-strike { color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); }
+.tag-phase-regret { color: #34d399; border-color: rgba(52, 211, 153, 0.4); }

@@ -79,11 +79,27 @@ export interface RunSiftingPatternArgs {
   searchDomain?: UID
 }
 
+// queuePlan asks the runtime to start a plan now (rather than via a
+// reaction in some action's body). tickPlanner advances any
+// already-queued or active plans -- it queues their next-phase
+// reactions onto the appropriate character action queue. Plans
+// introduce a second host-integration touchpoint alongside
+// selectAction: the host calls tickPlanner each turn so plan
+// timing has a clock to attach to.
+export interface QueuePlanArgs {
+  planName: string
+  precastBindings?: Record<string, UID[]>
+  causes?: UID[]
+  urgent?: boolean
+}
+
 interface VivModule {
   initializeVivRuntime: (args: InitializeArgs) => unknown
   selectAction: (args: SelectActionArgs) => Promise<UID | null>
   attemptAction: (args: AttemptActionArgs) => Promise<UID | null>
   runSiftingPattern: (args: RunSiftingPatternArgs) => Promise<SiftingMatch | null>
+  queuePlan: (args: QueuePlanArgs) => Promise<UID>
+  tickPlanner: () => Promise<void>
   EntityType: Record<string, EntityTypeValue>
 }
 

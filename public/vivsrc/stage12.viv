@@ -1,0 +1,117 @@
+// Stage 12: plans -- multi-phase reaction tapes.
+//
+// Reactions (stage 8) queue a single follow-up action: tease fires
+// once and a retaliate lands the next time the target gets a turn.
+// That's enough for a single beat, but it can't sequence across
+// turns. There's no way to say "first stew on it, *then* retaliate,
+// *then* apologise" without the author writing each link by hand
+// and praying nothing slips between them.
+//
+// A *plan* is a reaction with a phase tape. You declare named
+// phases and the runtime walks them in order across turns:
+//
+//   phases:
+//     >stew:    queue stew
+//     >strike:  queue retaliate
+//     >regret:  queue apologise
+//
+// Within a phase, instructions are fire-and-forget unless wrapped
+// in a window. A phase implicitly advances when its instructions
+// have been issued; the plan implicitly succeeds when the last
+// phase is done. Plans can be queued from any reaction site --
+// here, tease's reactions block queues a `grudge-arc` plan whose
+// roles get bound to the tease's cast. Once queued, the plan
+// belongs to the runtime; the host code that drives selectAction
+// stays the same.
+//
+// `stew`, `retaliate`, and `apologise` are all `reserved` because
+// they precast roles via the plan's `with:` bindings. They can't
+// be picked by general action selection -- only the plan can
+// queue them. An embargo on retaliate keeps a single tease from
+// triggering more than one revenge cycle per (avenger, bully) pair;
+// without it, a chain of teases would stack overlapping plans.
+
+action greet:
+    importance: 1
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+action tease:
+    importance: 3
+    report: '{@teaser.name} teases {@target.name}'
+    effects:
+        @target.cheerful = false
+    reactions:
+        queue plan grudge-arc:
+            with:
+                @victim: @target
+                @offender: @teaser
+    roles:
+        @teaser:
+            as: initiator
+        @target:
+            as: recipient
+
+reserved action stew:
+    importance: 5
+    report: '{@brooder.name} broods over the slight'
+    roles:
+        @brooder:
+            as: initiator
+
+reserved action retaliate:
+    importance: 5
+    embargoes:
+        embargo:
+            time: forever
+            roles: @avenger, @bully
+    report: '{@avenger.name} gets back at {@bully.name}'
+    effects:
+        @bully.cheerful = false
+    roles:
+        @avenger:
+            as: initiator
+        @bully:
+            as: recipient
+
+reserved action apologise:
+    importance: 5
+    report: '{@penitent.name} apologises to {@wronged.name} for the outburst'
+    effects:
+        @wronged.cheerful = true
+    roles:
+        @penitent:
+            as: initiator
+        @wronged:
+            as: recipient
+
+// Three-phase grudge: stew, then strike, then regret. The phases
+// are walked in order; the runtime advances when each phase's
+// queued reactions have been issued. Because the actions are
+// reserved and queued on @victim's behalf, they jump ahead of
+// general action selection on @victim's next turn.
+plan grudge-arc:
+    roles:
+        @victim:
+            as: character
+        @offender:
+            as: character
+    phases:
+        >stew:
+            queue action stew:
+                with:
+                    @brooder: @victim
+        >strike:
+            queue action retaliate:
+                with:
+                    @avenger: @victim
+                    @bully: @offender
+        >regret:
+            queue action apologise:
+                with:
+                    @penitent: @victim
+                    @wronged: @offender

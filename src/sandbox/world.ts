@@ -115,6 +115,17 @@ export function createStage11World(
   return state
 }
 
+// Stage 12 (plans): the grudge-arc plan reads/writes `cheerful`
+// like the earlier stages did, so we start every character cheerful
+// and let tease/retaliate/apologise toggle it.
+export function createStage12World(): WorldState {
+  const state = createInitialWorld()
+  for (const id of state.characters) {
+    state.entities[id].cheerful = true
+  }
+  return state
+}
+
 export const STAGE2_CHARACTERS: Array<{ id: UID; name: string; cheerful: boolean }> =
   CHARACTERS.map((c) => ({ ...c, cheerful: STAGE2_CHEERFUL[c.id] ?? false }))
 
