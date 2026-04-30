@@ -1,0 +1,51 @@
+// Stage 2: three actions, gates, and a world that changes.
+//
+// Stage 1 had one action. With one action there's no real choice --
+// the runtime just casts roles and emits. Stage 2 adds two more
+// actions, each with a *condition* that gates whether a given cast is
+// even legal. Now the runtime has to *filter* the cast space before
+// it picks.
+//
+// We also add `effects`, the first thing in this tour that writes
+// back to the host's world. The runtime calls `updateEntityProperty`
+// on the adapter to mutate `mood` -- the same field the conditions
+// here read. So the world evolves: today's effects become tomorrow's
+// gates.
+
+action greet:
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+// You can only cheer up someone whose mood is in the negative.
+// Both moods nudge upward as a result.
+action cheer-up:
+    report: '{@cheerer.name} cheers up {@friend.name}'
+    roles:
+        @cheerer:
+            as: initiator
+        @friend:
+            as: recipient
+    conditions:
+        @friend.mood < 0
+    effects:
+        @friend.mood += 4
+        @cheerer.mood += 1
+
+// You can only boast if you're feeling good. The listener gets
+// dragged down a little.
+action boast:
+    report: '{@boaster.name} boasts to {@listener.name}'
+    roles:
+        @boaster:
+            as: initiator
+        @listener:
+            as: recipient
+    conditions:
+        @boaster.mood > 0
+    effects:
+        @boaster.mood += 1
+        @listener.mood -= 2

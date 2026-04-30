@@ -5,9 +5,11 @@ import {
   type UID,
 } from '../viv'
 
-// The minimal world: three friends, no spatial state, no moods, no
-// items. The runtime queries the host through the adapter; for stage 1
-// it only ever needs to know which characters exist.
+// The minimal world: three friends. Stage 1 only ever asks the
+// adapter who the characters are. Stage 2 adds a `mood` field that
+// conditions read and effects write, but the structure (and the
+// adapter contract) is the same -- everything stays in plain old
+// host-owned objects.
 
 export type EntityRecord = Record<string, unknown> & {
   entityType?: EntityTypeValue
@@ -29,13 +31,19 @@ export interface ChronicleEntry {
   report: string
 }
 
+export interface InitialMoods {
+  alice?: number
+  bob?: number
+  carol?: number
+}
+
 const CHARACTERS: Array<{ id: UID; name: string }> = [
   { id: 'alice', name: 'Alice' },
   { id: 'bob', name: 'Bob' },
   { id: 'carol', name: 'Carol' },
 ]
 
-export function createInitialWorld(): WorldState {
+export function createInitialWorld(moods: InitialMoods = {}): WorldState {
   const state: WorldState = {
     entities: {},
     characters: [],
@@ -54,6 +62,11 @@ export function createInitialWorld(): WorldState {
       // unmodelled space" -- equivalent to a single shared room, but
       // without us having to invent one yet.
       location: null,
+      // Stage 2 introduces mood: an integer the runtime reads (in
+      // condition comparisons) and writes (in effect statements like
+      // `@friend.mood += 4`). Stage 1 never touches it, so leaving
+      // the field around is harmless.
+      mood: moods[c.id as keyof InitialMoods] ?? 0,
     }
   }
   return state
@@ -71,9 +84,9 @@ export function makeAdapter(state: WorldState): HostAdapter {
       return String(state.entities[id].name ?? id)
     },
     updateEntityProperty: (id, path, value) => {
-      // Stage 1 has no effects, so this never fires; we still implement
-      // it because the adapter contract requires it whenever the bundle
-      // contains entity-data assignments. Future stages will use it.
+      // Stage 1 has no effects, so this never fires there. Stage 2
+      // calls in here every time `cheer-up` or `boast` runs, to set
+      // a character's mood.
       if (state.entities[id] === undefined) throw new Error(`no entity: ${id}`)
       const parts = Array.isArray(path) ? path : String(path).split('.')
       let cur = state.entities[id] as Record<string, unknown>
@@ -123,4 +136,9 @@ export function characterEntities(state: WorldState): EntityRecord[] {
 
 export function actionRecord(state: WorldState, actionID: UID): EntityRecord | undefined {
   return state.entities[actionID]
+}
+
+export function moodOf(state: WorldState, characterID: UID): number {
+  const v = state.entities[characterID]?.mood
+  return typeof v === 'number' ? v : 0
 }

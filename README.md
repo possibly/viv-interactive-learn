@@ -41,7 +41,7 @@ schema by pinning to v0.10.x:
 
 ```sh
 pip install "viv-compiler==0.10.4"
-for s in 1 2 3 4 5; do
+for s in 1 2; do
   vivc -i public/vivsrc/stage$s.viv -o public/bundles/stage$s.json
 done
 ```

@@ -882,6 +882,281 @@ pre.code code {
   opacity: 0.85;
 }
 
+/* ===== Stage 2: ConditionsDemo (possibility matrix) ===== */
+
+.cond-demo {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 18px 18px 22px;
+  margin: 24px 0 36px;
+}
+
+.cond-head {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.cond-title h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+.cond-title p { margin: 0; font-size: 14px; }
+
+.cond-body {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 760px) {
+  .cond-body { grid-template-columns: 1fr; }
+}
+
+.cond-roster {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mood-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.mood-name {
+  font-weight: 600;
+  color: var(--text-h);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.mood-value {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin: 2px 0 8px;
+}
+.mood-bar {
+  position: relative;
+  height: 6px;
+  background: var(--code-bg);
+  border-radius: 999px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.mood-bar-zero {
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--text-dim);
+  opacity: 0.5;
+}
+.mood-bar-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  transition: left 180ms ease, width 180ms ease;
+}
+.mood-bar-fill.mood-up,
+.mood-bar-fill.mood-mid { background: var(--good); }
+.mood-bar-fill.mood-meh { background: var(--text-dim); opacity: 0.55; }
+.mood-bar-fill.mood-down { background: var(--bad); }
+
+.mood-controls {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.mood-controls button {
+  flex: 1;
+  font: inherit;
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 600;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+.mood-controls button:hover:not(:disabled) {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+.mood-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+.mood-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cond-matrix {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+.cond-matrix table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+.cond-matrix th,
+.cond-matrix td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  text-align: left;
+}
+.cond-matrix th {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--bg);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.cond-matrix .th-action {
+  text-align: center;
+  border-left: 1px solid var(--border);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.cond-matrix .th-action code {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+  font-size: 12px;
+  padding: 2px 6px;
+}
+.cond-matrix .th-cond {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text-dim);
+  margin-top: 4px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.cond-matrix .th-cond code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: 11px;
+  color: var(--text);
+}
+.cond-matrix .th-cond-label {
+  color: var(--text-dim);
+  font-style: italic;
+}
+.cond-matrix tbody tr:last-child td { border-bottom: 0; }
+.td-initiator {
+  font-weight: 600;
+  color: var(--text-h);
+  background: var(--panel-bg);
+  white-space: nowrap;
+  border-right: 1px solid var(--border);
+}
+
+.cell {
+  position: relative;
+  border-left: 1px solid var(--border);
+  min-width: 110px;
+  transition: background 200ms ease, border-color 200ms ease;
+  cursor: help;
+}
+.cell-target {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-h);
+  margin-bottom: 4px;
+}
+.cell-pass {
+  background: var(--good-bg);
+  box-shadow: inset 3px 0 0 var(--good);
+}
+.cell-pass .cell-pass-mark {
+  font-size: 11px;
+  color: var(--good);
+  font-family: var(--mono);
+  font-weight: 600;
+}
+.cell-fail {
+  background: var(--error-bg);
+  box-shadow: inset 3px 0 0 var(--error);
+}
+.cell-fail .cell-target { opacity: 0.6; }
+.cell-reason {
+  font-size: 10.5px;
+  color: var(--error);
+  font-family: var(--mono);
+  letter-spacing: -0.02em;
+}
+.cell-picked {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  z-index: 1;
+}
+.cell-ribbon {
+  position: absolute;
+  top: -8px;
+  right: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: var(--accent);
+  color: white;
+  padding: 1px 6px;
+  border-radius: 999px;
+  animation: ribbon-in 280ms ease-out both;
+}
+
+.cond-foot {
+  margin-top: 16px;
+}
+.cond-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.cond-controls button {
+  font: inherit;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+}
+.cond-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+.cond-controls button:hover:not(:disabled) { filter: brightness(1.08); }
+.cond-controls button.ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+.cond-controls button.ghost:hover:not(:disabled) {
+  background: var(--code-bg);
+  color: var(--text-h);
+}
+.cond-hint { font-size: 13px; }
+
 /* Light highlighting on language cues -- pure CSS, no parser. */
 .code.lang-viv code,
 .code.lang-ts code,

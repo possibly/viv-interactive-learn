@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import AlgorithmDemo from './sandbox/AlgorithmDemo'
+import ConditionsDemo from './sandbox/ConditionsDemo'
 import { HighlightedTs, HighlightedViv } from './sandbox/highlight'
 
-const VIV_SOURCE_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
+const STAGE1_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
+const STAGE2_PATH = `${import.meta.env.BASE_URL}vivsrc/stage2.viv`
 
 const HOST_WORLD = `// The host owns the world. Plain objects -- nothing here knows
 // about Viv yet. Three friends with an id and a name; location is
@@ -40,14 +42,19 @@ while (true) {
 `
 
 export default function App() {
-  const [vivSource, setVivSource] = useState<string>('Loading...')
+  const [stage1Source, setStage1Source] = useState<string>('Loading...')
+  const [stage2Source, setStage2Source] = useState<string>('Loading...')
 
   useEffect(() => {
     let cancelled = false
-    fetch(VIV_SOURCE_PATH)
-      .then((r) => r.text())
-      .then((t) => {
-        if (!cancelled) setVivSource(t)
+    void Promise.all([
+      fetch(STAGE1_PATH).then((r) => r.text()),
+      fetch(STAGE2_PATH).then((r) => r.text()),
+    ])
+      .then(([s1, s2]) => {
+        if (cancelled) return
+        setStage1Source(s1)
+        setStage2Source(s2)
       })
       .catch(() => {})
     return () => {
@@ -123,7 +130,7 @@ export default function App() {
         <p>
           For our friends, that's a single action: someone greets someone else.
         </p>
-        <HighlightedViv code={vivSource} />
+        <HighlightedViv code={stage1Source} />
         <p>
           The action declares the two roles it needs cast (the initiator and the
           recipient) and how to describe what happened for the chronicle. No conditions,
@@ -158,12 +165,101 @@ export default function App() {
 
       <AlgorithmDemo />
 
+      <section className="prose">
+        <h2>Stage 2: more than one action, and conditions</h2>
+        <p>
+          With one action, "what does the runtime pick?" is a boring question -- it picks
+          the only thing it can. The interesting things show up the moment there's
+          <em> more than one action</em> and at least one of them is{' '}
+          <em>only sometimes legal</em>.
+        </p>
+        <p>
+          So Stage 2 adds two more actions and gives them <code>conditions</code>. The
+          condition block is a list of expressions that all have to be truthy for the
+          runtime to consider a particular cast. We also start using <code>effects</code>,
+          which write back to the host's world -- our characters now have a{' '}
+          <code>mood</code> field that conditions read and effects mutate.
+        </p>
+        <HighlightedViv code={stage2Source} />
+        <p>
+          A few small things, big consequences:
+        </p>
+        <ul>
+          <li>
+            <strong>The cast space gets winnowed.</strong> For one initiator, there are
+            now three actions × two possible recipients = six prospective casts. Some of
+            them die at the conditions step. The runtime picks uniformly from whatever
+            survives.
+          </li>
+          <li>
+            <strong>The world starts evolving.</strong>{' '}
+            <code>cheer-up</code> nudges both characters' mood up by a few points;{' '}
+            <code>boast</code> nudges the boaster up and the listener down. Conditions in
+            the next timestep look at the new values, so a single pick can flip several
+            cells in the matrix.
+          </li>
+          <li>
+            <strong>Authoring stays declarative.</strong> Nothing in the .viv file knows
+            about &ldquo;timesteps&rdquo;, &ldquo;turns&rdquo;, or scheduling. We just say
+            what an action requires and what it leaves behind; the runtime turns that into
+            behaviour.
+          </li>
+        </ul>
+      </section>
+
+      <section className="prose">
+        <h2>The possibility matrix</h2>
+        <p>
+          Instead of stepping through one initiator's four steps -- the way the Stage 1
+          demo does -- this sandbox shows the whole working set at once. Each row is a
+          potential initiator. Each cell is a potential <code>(action, target)</code>{' '}
+          pair. Green cells pass conditions; red cells fail (hover for the reason).
+        </p>
+        <p>
+          Use the <code>-1</code> / <code>+1</code> buttons to nudge moods up and down,
+          and watch the matrix recolour live. Then click <strong>Run timestep</strong> to
+          let the runtime pick one legal cell per character; effects fire and the matrix
+          recolours again from the new world state.
+        </p>
+      </section>
+
+      <ConditionsDemo />
+
+      <section className="prose">
+        <h2>What to try</h2>
+        <ul>
+          <li>
+            Set everyone to mood <code>0</code> and run a timestep. <code>cheer-up</code>{' '}
+            and <code>boast</code> are both impossible, so all three characters fall back
+            on <code>greet</code>.
+          </li>
+          <li>
+            Push Bob down to <code>-3</code>. Suddenly the <code>cheer-up</code> column
+            opens up for Alice and Carol -- with Bob as the target -- and the runtime is
+            far more likely to pick those casts (out of the now-larger pool of legals).
+          </li>
+          <li>
+            Push Alice up to <code>+3</code>, leave the others at <code>0</code>, and run
+            a few timesteps in a row. Watch how a single cycle of <code>boast</code> drags
+            a listener into negative territory and instantly creates work for{' '}
+            <code>cheer-up</code> next time.
+          </li>
+        </ul>
+        <p>
+          The runtime is the source of truth for which cell gets picked -- the matrix
+          itself is just a window onto the same conditions the runtime is evaluating
+          against the same world we hand it through the adapter.
+        </p>
+      </section>
+
       <section className="prose stub">
         <h2>What comes next</h2>
         <p>
-          The next pass adds conditions, then importance, then location-aware roles, then
-          reactions. We'll re-introduce them one at a time, alongside their own algorithm
-          panels, once the Stage 1 walkthrough above feels right.
+          Stage 3 introduces <em>importance</em> and <em>saliences</em> -- the runtime's
+          way of weighting some legal casts above others rather than rolling uniformly --
+          and Stage 4 brings in location, items, and the spatial side of role casting.
+          The same authoring loop holds: declare what's possible, let the runtime do the
+          rest.
         </p>
       </section>
 
