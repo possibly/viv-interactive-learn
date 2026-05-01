@@ -22,8 +22,13 @@ export default function Items({ source }: Props) {
         <h2>Items that record history</h2>
         <p>
           The beer section showed items participating in actions and carrying
-          mutable properties. Two more effect keywords turn an item into a
-          historical record:
+          mutable properties. Now add a tavern journal — a single item that
+          characters can write in and read. A character who reads the journal
+          learns about events they weren't present for, as if they'd witnessed
+          them directly.
+        </p>
+        <p>
+          Two effect keywords make this possible:
         </p>
         <ul>
           <li>
