@@ -1,0 +1,126 @@
+// Stage 13: plans adapt to a changing world.
+//
+// Stage 12's grudge-arc has fire-and-forget phases: each phase
+// issues one queue instruction, the plan auto-advances, and within
+// a single planner tick all three phases can get processed. The
+// world the plan reacted to is the world at *queue time* -- once
+// stew, retaliate, and apologise are sitting in the action queue,
+// nothing later can re-check the conditions they were issued
+// against.
+//
+// Three small changes turn it into an adaptive plan:
+//
+//   1. Wrap each beat in an `all: ... close` reaction window. The
+//      phase blocks until the queued action actually fires (or
+//      fails) before advancing to the next phase. That is what
+//      gives the runtime a chance to re-evaluate the next phase
+//      against fresh world state, including any tease that landed
+//      in between.
+//
+//   2. Have retaliate also set `@avenger.cheerful = true` -- the
+//      vindication of getting back at the bully. This is the
+//      signal the regret phase reads against.
+//
+//   3. Gate the >regret phase with an `if !@victim.cheerful: fail`
+//      check. If the victim was re-teased between strike and
+//      regret, that vindication is wiped (cheerful flips back to
+//      false), and the apology is `fail`-ed -- the whole plan
+//      terminates instead of queuing apologise.
+//
+// The tease that triggers the plan is unchanged from stage 12;
+// only the plan's shape and retaliate's effects are adaptive now.
+
+action greet:
+    importance: 1
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+action tease:
+    importance: 3
+    report: '{@teaser.name} teases {@target.name}'
+    effects:
+        @target.cheerful = false
+    reactions:
+        queue plan grudge-arc:
+            with:
+                @victim: @target
+                @offender: @teaser
+    roles:
+        @teaser:
+            as: initiator
+        @target:
+            as: recipient
+
+reserved action stew:
+    importance: 5
+    report: '{@brooder.name} broods over the slight'
+    roles:
+        @brooder:
+            as: initiator
+
+reserved action retaliate:
+    importance: 5
+    embargoes:
+        embargo:
+            time: forever
+            roles: @avenger, @bully
+    report: '{@avenger.name} gets back at {@bully.name}'
+    effects:
+        // The avenger feels vindicated; mood lifts. The bully's
+        // mood drops. The lift is what makes the regret phase even
+        // possible -- if the avenger is re-teased before regret
+        // runs, this gets undone and the plan aborts.
+        @avenger.cheerful = true
+        @bully.cheerful = false
+    roles:
+        @avenger:
+            as: initiator
+        @bully:
+            as: recipient
+
+reserved action apologise:
+    importance: 5
+    report: '{@penitent.name} apologises to {@wronged.name} for the outburst'
+    effects:
+        @wronged.cheerful = true
+    roles:
+        @penitent:
+            as: initiator
+        @wronged:
+            as: recipient
+
+// Phases now wait for their queued action to actually fire before
+// advancing. The >regret phase re-checks @victim.cheerful at
+// phase-run time and fails the plan if the victim was re-teased.
+plan grudge-arc:
+    roles:
+        @victim:
+            as: character
+        @offender:
+            as: character
+    phases:
+        >stew:
+            all:
+                queue action stew:
+                    with:
+                        @brooder: @victim
+            close
+        >strike:
+            all:
+                queue action retaliate:
+                    with:
+                        @avenger: @victim
+                        @bully: @offender
+            close
+        >regret:
+            if !@victim.cheerful:
+                fail;
+            end
+            queue action apologise:
+                with:
+                    @penitent: @victim
+                    @wronged: @offender

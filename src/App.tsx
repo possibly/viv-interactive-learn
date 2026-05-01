@@ -7,6 +7,7 @@ import Goal from './sections/Goal'
 import Host from './sections/Host'
 import Importance from './sections/Importance'
 import Memory from './sections/Memory'
+import PlanAdaptation from './sections/PlanAdaptation'
 import Plans from './sections/Plans'
 import Queries from './sections/Queries'
 import Reactions from './sections/Reactions'
@@ -21,7 +22,7 @@ import { useVivSources } from './sandbox/useVivSources'
 const VIV_KEYS = [
   'stage1', 'stage2', 'stage3', 'stage4', 'stage5',
   'stage6', 'stage7', 'stage8', 'stage9', 'stage10',
-  'stage11', 'stage12',
+  'stage11', 'stage12', 'stage13',
 ] as const
 
 const TOC_SECTIONS: TocSection[] = [
@@ -41,6 +42,7 @@ const TOC_SECTIONS: TocSection[] = [
   { id: 'selectors', label: 'Many candidates, one policy' },
   { id: 'tropes', label: 'Naming a relational pattern' },
   { id: 'plans', label: 'Multi-phase reaction tapes' },
+  { id: 'plan-adaptation', label: 'Plans that react to a changing world' },
 ]
 
 const INITIAL_IMPORTANCE: Record<string, number> = {
@@ -89,6 +91,7 @@ export default function App() {
       <Selectors source={sources.stage10} />
       <Tropes source={sources.stage11} />
       <Plans source={sources.stage12} />
+      <PlanAdaptation source={sources.stage13} />
 
       <footer className="page-footer">
         <p className="dim">

@@ -42,7 +42,7 @@ If you tweak a `.viv` source you need the Python compiler. The bundles in
 
 ```sh
 pip install "viv-compiler==0.12.1"
-for s in 1 2 3 4 5 6 7 8 9 10 11 12; do
+for s in 1 2 3 4 5 6 7 8 9 10 11 12 13; do
   vivc -i public/vivsrc/stage$s.viv -o public/bundles/stage$s.json
 done
 ```
@@ -56,19 +56,20 @@ every push to `main`.
 ## Stages
 
 The same storyworld -- three friends in a tavern -- grows in ambition
-across twelve stages:
+across thirteen stages:
 
-| #  | Title         | Introduces                                          |
-|----|---------------|-----------------------------------------------------|
-| 1  | Hello         | actions, roles, report                              |
-| 2  | Conditions    | role conditions, multi-action choice                |
-| 3  | Effects       | effects, world mutation, the host adapter callback  |
-| 4  | Importance    | weighted action selection                           |
-| 5  | Embargoes     | one-shot and time-bounded action lockouts           |
-| 6  | Queries       | named patterns over the chronicle as gates          |
-| 7  | Sifting       | multi-action patterns; finding stories after the fact |
-| 8  | Reactions     | actions that queue other actions; reserved actions  |
-| 9  | Memory        | per-character salience, saveCharacterMemory, POV sifting |
-| 10 | Selectors     | action selectors with `target in order` cascade     |
-| 11 | Tropes        | named, parameterised bundles of conditions          |
-| 12 | Plans         | multi-phase reaction tapes; tickPlanner             |
+| #  | Title             | Introduces                                          |
+|----|-------------------|-----------------------------------------------------|
+| 1  | Hello             | actions, roles, report                              |
+| 2  | Conditions        | role conditions, multi-action choice                |
+| 3  | Effects           | effects, world mutation, the host adapter callback  |
+| 4  | Importance        | weighted action selection                           |
+| 5  | Embargoes         | one-shot and time-bounded action lockouts           |
+| 6  | Queries           | named patterns over the chronicle as gates          |
+| 7  | Sifting           | multi-action patterns; finding stories after the fact |
+| 8  | Reactions         | actions that queue other actions; reserved actions  |
+| 9  | Memory            | per-character salience, saveCharacterMemory, POV sifting |
+| 10 | Selectors         | action selectors with `target in order` cascade     |
+| 11 | Tropes            | named, parameterised bundles of conditions          |
+| 12 | Plans             | multi-phase reaction tapes; tickPlanner             |
+| 13 | Plan adaptation   | reaction windows (`all:/close`); `if`/`fail;`       |
