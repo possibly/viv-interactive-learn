@@ -7,6 +7,7 @@ import Goal from './sections/Goal'
 import Host from './sections/Host'
 import Importance from './sections/Importance'
 import Items from './sections/Items'
+import ItemsInventory from './sections/ItemsInventory'
 import Memory from './sections/Memory'
 import PlanAdaptation from './sections/PlanAdaptation'
 import Plans from './sections/Plans'
@@ -23,7 +24,7 @@ import { useVivSources } from './sandbox/useVivSources'
 const VIV_KEYS = [
   'stage1', 'stage2', 'stage3', 'stage4', 'stage5',
   'stage6', 'stage7', 'stage8', 'stage9', 'stage10',
-  'stage11', 'stage12', 'stage13', 'stage14',
+  'stage11', 'stage12', 'stage13', 'stage14', 'stage15',
 ] as const
 
 const TOC_SECTIONS: TocSection[] = [
@@ -44,6 +45,7 @@ const TOC_SECTIONS: TocSection[] = [
   { id: 'tropes', label: 'Naming a relational pattern' },
   { id: 'plans', label: 'Multi-phase reaction tapes' },
   { id: 'plan-adaptation', label: 'Plans that react to a changing world' },
+  { id: 'items-inventory', label: 'Items and a basic inventory' },
   { id: 'items', label: 'Items: physical objects that carry history' },
 ]
 
@@ -94,7 +96,8 @@ export default function App() {
       <Tropes source={sources.stage11} />
       <Plans source={sources.stage12} />
       <PlanAdaptation source={sources.stage13} />
-      <Items source={sources.stage14} />
+      <ItemsInventory source={sources.stage14} />
+      <Items source={sources.stage15} />
 
       <footer className="page-footer">
         <p className="dim">

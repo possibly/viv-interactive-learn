@@ -2538,7 +2538,184 @@ pre.code.inline-snippet {
   border: 1px solid var(--error);
 }
 
-/* Stage 14: items — inscription and inspection. */
+/* Stage 14: items as inventory — beer lifecycle demo. */
+.inv-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 16px;
+  padding: 14px 12px;
+}
+@media (max-width: 860px) {
+  .inv-layout { grid-template-columns: 1fr; }
+}
+.inv-left { display: flex; flex-direction: column; }
+.inv-right h4 {
+  font-size: 14px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-h);
+  margin: 0 0 6px;
+}
+
+/* Bar stock rack */
+.beer-rack {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--panel-bg);
+}
+.beer-rack-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-dim);
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--code-bg);
+}
+.beer-rack-items {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  flex-wrap: wrap;
+}
+
+/* Individual beer card */
+.beer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  min-width: 72px;
+  transition: background 300ms, border-color 300ms;
+}
+.beer-free {
+  background: var(--bg);
+  border-color: var(--border);
+}
+.beer-held {
+  background: rgba(245, 158, 11, 0.10);
+  border-color: rgba(245, 158, 11, 0.50);
+}
+.beer-icon {
+  display: block;
+  width: 22px;
+  height: 28px;
+  border-radius: 3px 3px 5px 5px;
+  border: 2px solid currentColor;
+  position: relative;
+}
+.beer-free .beer-icon {
+  color: var(--border);
+}
+.beer-held .beer-icon {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.25);
+}
+.beer-icon::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: -5px;
+  left: 3px;
+  right: 3px;
+  height: 4px;
+  border-radius: 2px 2px 0 0;
+  background: currentColor;
+}
+.beer-name {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+.beer-status {
+  font-size: 10px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+.beer-free .beer-status { color: var(--text-dim); }
+.beer-held .beer-status { color: #f59e0b; }
+
+/* Chronicle item tag for which beer was cast */
+.inv-item-tag {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(245, 158, 11, 0.40);
+  background: rgba(245, 158, 11, 0.10);
+  color: #f59e0b;
+  white-space: nowrap;
+}
+
+/* Character inventory */
+.inv-char-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.inv-char-row {
+  display: grid;
+  grid-template-columns: 54px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+.inv-char-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-h);
+}
+.inv-pips {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.inv-pip {
+  display: inline-block;
+  width: 16px;
+  height: 20px;
+  border-radius: 2px 2px 4px 4px;
+  border: 2px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.22);
+  position: relative;
+}
+.inv-pip::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: -4px;
+  left: 2px;
+  right: 2px;
+  height: 3px;
+  border-radius: 2px 2px 0 0;
+  background: #f59e0b;
+}
+.inv-empty {
+  font-size: 12px;
+  font-style: italic;
+}
+.inv-count {
+  font-family: var(--mono);
+  font-size: 12px;
+  min-width: 14px;
+  text-align: right;
+}
+
+/* Stage 15: items — inscription and inspection. */
 .items-demo .algo-demo-head {
   flex-direction: column;
   gap: 10px;

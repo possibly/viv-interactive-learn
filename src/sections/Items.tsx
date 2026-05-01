@@ -1,4 +1,4 @@
-import Stage14Demo from '../sandbox/Stage14Demo'
+import Stage15Demo from '../sandbox/Stage15Demo'
 import { HighlightedTs, HighlightedViv } from '../sandbox/highlight'
 
 interface Props {
@@ -82,17 +82,18 @@ export default function Items({ source }: Props) {
       <section className="prose">
         <h3>See inscription and inspection in action</h3>
         <p>
-          Step through turns to let characters greet and write in the journal.
-          Once at least one action is inscribed, click a character's{' '}
-          <em>reads</em> button to fire a reserved{' '}
-          <code>read-journal</code> action. The character's knowledge panel on
-          the right will update immediately, showing entries tagged{' '}
+          Step through turns to watch characters greet, write in, and read the
+          journal naturally — <code>read-journal</code> is a regular action
+          that <code>selectAction</code> can pick just like any other. Watch the
+          journal's inscriptions list grow, and when a character reads it the
+          knowledge panel on the right shows entries tagged{' '}
           <em>via journal</em> — memories transferred from the item, not from
-          direct participation.
+          direct participation. Use the buttons in the controls to force a
+          specific character to read right now.
         </p>
       </section>
 
-      <Stage14Demo />
+      <Stage15Demo />
     </>
   )
 }

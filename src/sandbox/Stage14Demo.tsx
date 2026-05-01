@@ -4,24 +4,10 @@ import {
   actionRecord,
   createStage14World,
   makeAdapter,
-  STAGE14_JOURNAL_ID,
+  STAGE14_BEER_IDS,
   STAGE2_CHARACTERS,
   type WorldState,
 } from './world'
-
-// Stage 14: items — inscription and inspection.
-//
-// The demo shows three things happening in sequence as you step through turns:
-//
-//   1. Characters occasionally select write-in-journal, which appends the
-//      action ID to the journal item's inscriptions list.
-//
-//   2. Clicking "Read journal" for a character fires a reserved read-journal
-//      action (via attemptAction). The runtime runs `@reader inspect @journal`,
-//      which copies all inscribed action IDs into the reader's memory book.
-//
-//   3. The "Knowledge" column shows, per character, which entries in their
-//      memory book came from the journal vs. direct participation.
 
 const STAGE14_BUNDLE_PATH = `${import.meta.env.BASE_URL}bundles/stage14.json`
 
@@ -29,8 +15,9 @@ const ROTATION: UID[] = ['alice', 'bob', 'carol']
 
 const ACTION_COLORS: Record<string, string> = {
   greet: '#7aa2f7',
-  'write-in-journal': '#f59e0b',
-  'read-journal': '#34d399',
+  'buy-beer': '#f59e0b',
+  'give-beer': '#a78bfa',
+  'drink-beer': '#f87171',
 }
 
 interface ChronicleItem {
@@ -38,75 +25,46 @@ interface ChronicleItem {
   actionID: UID
   actionName: string
   report: string
-  initiatorID: UID
+  beerID?: UID
 }
 
-interface KnowledgeEntry {
-  actionID: UID
-  actionName: string
-  report: string
-  chronicleIndex: number
-  source: 'wrote' | 'read' | 'witnessed'
+interface BeerState {
+  id: UID
+  held: boolean
+  // flash class for animation trigger
+  flashKey: number
+}
+
+interface CharState {
+  id: UID
+  name: string
+  beers: number
 }
 
 const CHAR_NAMES: Record<UID, string> = Object.fromEntries(
   STAGE2_CHARACTERS.map((c) => [c.id, c.name]),
 )
 
-function nameOf(id: UID) {
-  return CHAR_NAMES[id] ?? id
+function beerLabel(id: string) {
+  const n = id.replace('beer-', '')
+  return `Beer ${n}`
 }
 
-function buildKnowledge(
-  world: WorldState,
-  chron: ChronicleItem[],
-  ins: UID[],
-): Record<UID, KnowledgeEntry[]> {
-  const indexByID = new Map(chron.map((c) => [c.actionID, c.index]))
-  const kmap: Record<UID, KnowledgeEntry[]> = {}
-
-  for (const char of STAGE2_CHARACTERS) {
-    const ent = world.entities[char.id]
-    const memMap = (ent?.memories ?? {}) as Record<UID, unknown>
-    const entries: KnowledgeEntry[] = []
-
-    for (const actionID of Object.keys(memMap)) {
-      const chronEntry = chron.find((c) => c.actionID === actionID)
-      if (!chronEntry) continue
-
-      const rec = actionRecord(world, actionID) as
-        | { bindings?: Record<string, UID[]> }
-        | undefined
-      const scribes = rec?.bindings?.scribe ?? []
-
-      let source: KnowledgeEntry['source'] = 'witnessed'
-      if (scribes.includes(char.id)) {
-        source = 'wrote'
-      } else if (ins.includes(actionID)) {
-        source = 'read'
-      }
-
-      entries.push({
-        actionID,
-        actionName: chronEntry.actionName,
-        report: chronEntry.report,
-        chronicleIndex: indexByID.get(actionID) ?? 0,
-        source,
-      })
-    }
-
-    entries.sort((a, b) => a.chronicleIndex - b.chronicleIndex)
-    kmap[char.id] = entries
-  }
-
-  return kmap
+function syncBeers(world: WorldState, prev: BeerState[]): BeerState[] {
+  return STAGE14_BEER_IDS.map((id, i) => {
+    const ent = world.entities[id]
+    const held = ent?.held === true
+    const prevHeld = prev[i]?.held ?? false
+    return { id, held, flashKey: held !== prevHeld ? (prev[i]?.flashKey ?? 0) + 1 : (prev[i]?.flashKey ?? 0) }
+  })
 }
 
-function readInscriptions(world: WorldState): UID[] {
-  const journal = world.entities[STAGE14_JOURNAL_ID]
-  return Array.isArray(journal?.inscriptions)
-    ? (journal.inscriptions as UID[])
-    : []
+function syncChars(world: WorldState): CharState[] {
+  return STAGE2_CHARACTERS.map((c) => ({
+    id: c.id,
+    name: c.name,
+    beers: Number(world.entities[c.id]?.beers ?? 0),
+  }))
 }
 
 export default function Stage14Demo() {
@@ -116,17 +74,20 @@ export default function Stage14Demo() {
   const [vivReady, setVivReady] = useState(false)
   const [vivErr, setVivErr] = useState<string | null>(null)
   const [chronicle, setChronicle] = useState<ChronicleItem[]>([])
-  const [inscriptions, setInscriptions] = useState<UID[]>([])
-  const [knowledge, setKnowledge] = useState<Record<UID, KnowledgeEntry[]>>({})
+  const [beers, setBeers] = useState<BeerState[]>(() =>
+    STAGE14_BEER_IDS.map((id) => ({ id, held: false, flashKey: 0 })),
+  )
+  const [chars, setChars] = useState<CharState[]>(() =>
+    STAGE2_CHARACTERS.map((c) => ({ id: c.id, name: c.name, beers: 0 })),
+  )
   const [turn, setTurn] = useState(0)
   const [busy, setBusy] = useState(false)
 
-  const applyChronicle = (next: ChronicleItem[]) => {
+  const applyState = (next: ChronicleItem[]) => {
     chronicleRef.current = next
-    const ins = readInscriptions(worldRef.current)
     setChronicle(next)
-    setInscriptions(ins)
-    setKnowledge(buildKnowledge(worldRef.current, next, ins))
+    setBeers((prev) => syncBeers(worldRef.current, prev))
+    setChars(syncChars(worldRef.current))
   }
 
   const bindRuntime = async () => {
@@ -136,10 +97,7 @@ export default function Stage14Demo() {
       bundle = (await fetch(STAGE14_BUNDLE_PATH).then((r) => r.json())) as ContentBundle
       bundleRef.current = bundle
     }
-    viv.initializeVivRuntime({
-      contentBundle: bundle,
-      adapter: makeAdapter(worldRef.current),
-    })
+    viv.initializeVivRuntime({ contentBundle: bundle, adapter: makeAdapter(worldRef.current) })
     return viv
   }
 
@@ -150,15 +108,13 @@ export default function Stage14Demo() {
         await bindRuntime()
         if (cancelled) return
         setVivReady(true)
-        applyChronicle([])
+        applyState([])
       } catch (e) {
         if (cancelled) return
         setVivErr(e instanceof Error ? e.message : String(e))
       }
     })()
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [])
 
   const reset = async () => {
@@ -167,7 +123,7 @@ export default function Stage14Demo() {
     try {
       await bindRuntime()
       setTurn(0)
-      applyChronicle([])
+      applyState([])
     } catch (e) {
       setVivErr(e instanceof Error ? e.message : String(e))
     }
@@ -185,8 +141,9 @@ export default function Stage14Demo() {
       let next: ChronicleItem[]
       if (actionID) {
         const rec = actionRecord(worldRef.current, actionID) as
-          | { name?: string; report?: string }
+          | { name?: string; report?: string; bindings?: Record<string, UID[]> }
           | undefined
+        const beerID = rec?.bindings?.beer?.[0]
         next = [
           ...prev,
           {
@@ -194,61 +151,18 @@ export default function Stage14Demo() {
             actionID,
             actionName: String(rec?.name ?? '?'),
             report: String(rec?.report ?? ''),
-            initiatorID: initiator,
+            beerID,
           },
         ]
       } else {
         next = [
           ...prev,
-          {
-            index: prev.length + 1,
-            actionID: '',
-            actionName: '(none)',
-            report: '(no action eligible)',
-            initiatorID: initiator,
-          },
+          { index: prev.length + 1, actionID: '', actionName: '(none)', report: '(no action eligible)' },
         ]
       }
 
       setTurn((t) => t + 1)
-      applyChronicle(next)
-    } catch (e) {
-      setVivErr(e instanceof Error ? e.message : String(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const readJournal = async (readerID: UID) => {
-    if (!vivReady || busy) return
-    setBusy(true)
-    try {
-      const viv = await bindRuntime()
-      const actionID = await viv.attemptAction({
-        actionName: 'read-journal',
-        initiatorID: readerID,
-        precastBindings: {
-          reader: [readerID],
-          journal: [STAGE14_JOURNAL_ID],
-        },
-      })
-      if (!actionID) return
-      const rec = actionRecord(worldRef.current, actionID) as
-        | { name?: string; report?: string }
-        | undefined
-      const prev = chronicleRef.current
-      const next: ChronicleItem[] = [
-        ...prev,
-        {
-          index: prev.length + 1,
-          actionID,
-          actionName: String(rec?.name ?? 'read-journal'),
-          report: String(rec?.report ?? ''),
-          initiatorID: readerID,
-        },
-      ]
-      setTurn((t) => t + 1)
-      applyChronicle(next)
+      applyState(next)
     } catch (e) {
       setVivErr(e instanceof Error ? e.message : String(e))
     } finally {
@@ -259,13 +173,13 @@ export default function Stage14Demo() {
   const nextInitiator = ROTATION[turn % ROTATION.length]
 
   return (
-    <div className="algo-demo items-demo">
+    <div className="algo-demo inv-demo">
       {vivErr && <div className="error">{vivErr}</div>}
 
       <header className="algo-demo-head">
         <div className="algo-controls">
           <span className="dim">
-            Next up: <strong>{nameOf(nextInitiator)}</strong>{' '}
+            Next up: <strong>{CHAR_NAMES[nextInitiator]}</strong>{' '}
             <span className="dim">(turn {turn + 1})</span>
           </span>
           <button type="button" onClick={stepTurn} disabled={!vivReady || busy}>
@@ -280,76 +194,25 @@ export default function Stage14Demo() {
             Reset
           </button>
         </div>
-        <div className="items-read-row">
-          <span className="dim">Inspect the journal:</span>
-          {STAGE2_CHARACTERS.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className="items-read-btn"
-              onClick={() => readJournal(c.id)}
-              disabled={!vivReady || busy || inscriptions.length === 0}
-              title={
-                inscriptions.length === 0
-                  ? 'Journal is empty — step some turns first'
-                  : `${c.name} reads the journal, gaining memory of all inscribed actions`
-              }
-            >
-              {c.name} reads
-            </button>
-          ))}
-        </div>
-        <p className="plan-tip dim">
-          Step turns until <code>write-in-journal</code> fires — it inscribes the action
-          onto the journal. Then click "<em>Name</em> reads" to transfer that knowledge to
-          a character who wasn't there.
-        </p>
       </header>
 
-      <div className="items-layout">
-        {/* Left: journal + chronicle */}
-        <div className="items-left">
-          <div className="item-card">
-            <div className="item-card-head">
-              <span className="item-tag">item</span>
-              <strong>Tavern Journal</strong>
-            </div>
-            <div className="item-card-body">
-              <div className="item-field-label">
-                inscriptions
-                <span className="item-count dim">({inscriptions.length})</span>
-              </div>
-              {inscriptions.length === 0 ? (
-                <p className="dim item-empty">
-                  Empty — no actions inscribed yet.
-                </p>
-              ) : (
-                <ol className="item-inscriptions">
-                  {inscriptions.map((aid, i) => {
-                    const entry = chronicle.find((c) => c.actionID === aid)
-                    return (
-                      <li key={aid} className="inscription-row">
-                        <span className="inscription-num">#{i + 1}</span>
-                        <span className="inscription-idx dim">
-                          T{entry?.index ?? '?'}
-                        </span>
-                        <span
-                          className="inscription-name"
-                          style={{
-                            color:
-                              ACTION_COLORS[entry?.actionName ?? ''] ?? 'inherit',
-                          }}
-                        >
-                          {entry?.actionName ?? '?'}
-                        </span>
-                        <span className="inscription-report">
-                          {entry?.report ?? ''}
-                        </span>
-                      </li>
-                    )
-                  })}
-                </ol>
-              )}
+      <div className="inv-layout">
+        {/* Left: beer rack + chronicle */}
+        <div className="inv-left">
+          <div className="beer-rack">
+            <div className="beer-rack-label">Bar stock</div>
+            <div className="beer-rack-items">
+              {beers.map((b) => (
+                <div
+                  key={b.id}
+                  className={`beer-card ${b.held ? 'beer-held' : 'beer-free'}`}
+                  data-flash={b.flashKey}
+                >
+                  <span className="beer-icon" aria-hidden="true" />
+                  <span className="beer-name">{beerLabel(b.id)}</span>
+                  <span className="beer-status">{b.held ? 'held' : 'free'}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -358,7 +221,7 @@ export default function Stage14Demo() {
               Chronicle <span className="dim">({chronicle.length})</span>
             </h4>
             {chronicle.length === 0 ? (
-              <p className="dim">Step some turns to build a chronicle.</p>
+              <p className="dim">Step some turns to see actions fire.</p>
             ) : (
               <ul className="chronicle-pile">
                 {chronicle.map((c) => (
@@ -366,18 +229,15 @@ export default function Stage14Demo() {
                     <span className="strip-idx dim">T{c.index}</span>
                     <span
                       className="strip-action"
-                      style={{
-                        color: ACTION_COLORS[c.actionName] ?? 'inherit',
-                      }}
+                      style={{ color: ACTION_COLORS[c.actionName] ?? 'inherit' }}
                     >
                       {c.actionName}
                     </span>
                     <span className="strip-report">{c.report}</span>
-                    {c.actionName === 'write-in-journal' && (
-                      <span className="items-tag items-tag-inscribed">inscribed</span>
-                    )}
-                    {c.actionName === 'read-journal' && (
-                      <span className="items-tag items-tag-read">inspected</span>
+                    {c.beerID && (
+                      <span className="inv-item-tag" title={`item role @beer cast to ${c.beerID}`}>
+                        @beer: {beerLabel(c.beerID)}
+                      </span>
                     )}
                   </li>
                 ))}
@@ -386,73 +246,32 @@ export default function Stage14Demo() {
           </div>
         </div>
 
-        {/* Right: per-character knowledge */}
-        <div className="items-right">
-          <h4>Character knowledge</h4>
+        {/* Right: character inventories */}
+        <div className="inv-right">
+          <h4>Inventories</h4>
           <p className="dim memory-blurb">
-            Each character's memory book, annotated with how they learned about each
-            action.{' '}
-            <span className="items-source-badge items-source-wrote">wrote it</span>{' '}
-            = inscribed via participation.{' '}
-            <span className="items-source-badge items-source-read">via journal</span>{' '}
-            = transferred by inspection.
+            Each character's beer count. <code>buy-beer</code> and{' '}
+            <code>drink-beer</code> cast an item into <code>@beer</code> and
+            change its <code>held</code> property alongside the character
+            counter. <code>give-beer</code> transfers between character counts
+            with no item role needed.
           </p>
-          <div className="items-char-grid">
-            {STAGE2_CHARACTERS.map((c) => {
-              const entries = knowledge[c.id] ?? []
-              return (
-                <div key={c.id} className="memory-col">
-                  <div className="memory-col-head">
-                    <strong>{c.name}</strong>
-                    <span className="dim">
-                      {entries.length}{' '}
-                      {entries.length === 1 ? 'memory' : 'memories'}
-                    </span>
-                  </div>
-                  {entries.length === 0 ? (
-                    <p className="dim" style={{ fontSize: 12 }}>
-                      No memories yet.
-                    </p>
+          <div className="inv-char-list">
+            {chars.map((c) => (
+              <div key={c.id} className="inv-char-row">
+                <span className="inv-char-name">{c.name}</span>
+                <div className="inv-pips">
+                  {c.beers === 0 ? (
+                    <span className="inv-empty dim">none</span>
                   ) : (
-                    <ul className="memory-list">
-                      {entries.map((e) => (
-                        <li
-                          key={e.actionID}
-                          className="memory-item items-memory-item"
-                        >
-                          <span className="memory-idx">T{e.chronicleIndex}</span>
-                          <span
-                            className="memory-action"
-                            style={{
-                              color: ACTION_COLORS[e.actionName] ?? 'inherit',
-                            }}
-                          >
-                            {e.actionName}
-                          </span>
-                          <span className="memory-report">{e.report}</span>
-                          <span
-                            className={`items-source-badge items-source-${e.source}`}
-                            title={
-                              e.source === 'wrote'
-                                ? 'Inscribed directly by this character'
-                                : e.source === 'read'
-                                  ? 'Transferred via journal inspection'
-                                  : 'Direct participation'
-                            }
-                          >
-                            {e.source === 'wrote'
-                              ? 'wrote it'
-                              : e.source === 'read'
-                                ? 'via journal'
-                                : 'witnessed'}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
+                    Array.from({ length: c.beers }, (_, i) => (
+                      <span key={i} className="inv-pip" aria-label="beer" />
+                    ))
                   )}
                 </div>
-              )
-            })}
+                <span className="inv-count dim">{c.beers}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

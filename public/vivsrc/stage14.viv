@@ -1,20 +1,21 @@
-// Stage 14: items — inscription and inspection.
+// Stage 14: items as inventory — a lightweight item system.
 //
-// Items are a third entity type alongside characters and locations.
-// A role declared `as: item` is filled by any item at the same location
-// as the initiator; the runtime casts them using the same pool logic it
-// uses for character roles.
+// Items are a first-class entity type alongside characters and locations.
+// A role declared `as: item` is filled by any item at the initiator's
+// location, using the same pool logic that fills character roles.
 //
-// Inscription writes this action's ID onto an item's log:
-//   @journal inscribe @this
-// After the effect fires the item's `inscriptions` array holds the new
-// action ID. The runtime calls `saveItemInscriptions` on the host.
+// The tavern starts with three beers. Characters interact with them in
+// a small lifecycle:
 //
-// Inspection transfers that history to a character:
-//   @reader inspect @journal
-// The reader gains a memory entry for every action already inscribed on
-// the item — just as if they had actively participated in each one.
-// Knowledge travels from object to mind.
+//   buy-beer   — pick up a free beer (condition: @beer.held == false)
+//   give-beer  — hand one to a friend (condition: @giver.beers > 0)
+//   drink-beer — consume one you're holding (condition: @beer.held == true,
+//                @drinker.beers > 0)
+//
+// Item properties (`held`) and character properties (`beers`) are both
+// updated through the same `updateEntityProperty` callback the host
+// already provides. The runtime doesn't distinguish — entity properties
+// are entity properties regardless of type.
 
 action greet:
     importance: 1
@@ -25,24 +26,45 @@ action greet:
         @friend:
             as: recipient
 
-action write-in-journal:
+action buy-beer:
     importance: 3
-    report: '{@scribe.name} writes in the tavern journal'
+    report: '{@buyer.name} buys a beer from the bar'
     roles:
-        @scribe:
+        @buyer:
             as: initiator
-        @journal:
+        @beer:
             as: item
+    conditions:
+        @beer.held == false
     effects:
-        @journal inscribe @this
+        @beer.held = true
+        @buyer.beers += 1
 
-reserved action read-journal:
+action give-beer:
     importance: 2
-    report: '{@reader.name} reads the tavern journal'
+    report: '{@giver.name} passes a beer to {@friend.name}'
     roles:
-        @reader:
+        @giver:
             as: initiator
-        @journal:
-            as: item, precast
+        @friend:
+            as: recipient
+    conditions:
+        @giver.beers > 0
     effects:
-        @reader inspect @journal
+        @giver.beers -= 1
+        @friend.beers += 1
+
+action drink-beer:
+    importance: 2
+    report: '{@drinker.name} drinks a beer'
+    roles:
+        @drinker:
+            as: initiator
+        @beer:
+            as: item
+    conditions:
+        @beer.held == true
+        @drinker.beers > 0
+    effects:
+        @beer.held = false
+        @drinker.beers -= 1

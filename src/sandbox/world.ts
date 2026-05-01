@@ -128,16 +128,39 @@ export function createStage12World(): WorldState {
   return state
 }
 
-// Stage 14 (items): adds a single item — the tavern journal — that
-// characters can write in (inscription) and read (inspection).
-export const STAGE14_JOURNAL_ID = 'tavern-journal'
+// Stage 14 (items): three beers at the tavern that characters can buy,
+// give to each other, and drink. Demonstrates item roles, item property
+// effects, and a lightweight character-inventory pattern.
+export const STAGE14_BEER_IDS = ['beer-1', 'beer-2', 'beer-3'] as const
 
 export function createStage14World(): WorldState {
   const state = createInitialWorld()
-  state.items.push(STAGE14_JOURNAL_ID)
-  state.entities[STAGE14_JOURNAL_ID] = {
+  for (const id of STAGE14_BEER_IDS) {
+    state.items.push(id)
+    state.entities[id] = {
+      entityType: EntityTypeValues.Item,
+      id,
+      name: 'Beer',
+      location: 'tavern',
+      held: false,
+    }
+  }
+  for (const id of state.characters) {
+    state.entities[id].beers = 0
+  }
+  return state
+}
+
+// Stage 15 (inscription/inspection): adds a single item — the tavern
+// journal — that characters can write in and read.
+export const STAGE15_JOURNAL_ID = 'tavern-journal'
+
+export function createStage15World(): WorldState {
+  const state = createInitialWorld()
+  state.items.push(STAGE15_JOURNAL_ID)
+  state.entities[STAGE15_JOURNAL_ID] = {
     entityType: EntityTypeValues.Item,
-    id: STAGE14_JOURNAL_ID,
+    id: STAGE15_JOURNAL_ID,
     name: 'Tavern Journal',
     location: 'tavern',
     inscriptions: [],
