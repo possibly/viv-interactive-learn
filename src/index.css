@@ -2537,3 +2537,204 @@ pre.code.inline-snippet {
   color: var(--error);
   border: 1px solid var(--error);
 }
+
+/* Stage 14: items — inscription and inspection. */
+.items-demo .algo-demo-head {
+  flex-direction: column;
+  gap: 10px;
+}
+.items-read-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.items-read-btn {
+  font: inherit;
+  font-size: 12.5px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+}
+.items-read-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+.items-read-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.items-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 16px;
+  padding: 14px 12px;
+}
+@media (max-width: 860px) {
+  .items-layout { grid-template-columns: 1fr; }
+}
+
+.items-left { display: flex; flex-direction: column; gap: 0; }
+.items-right h4 {
+  font-size: 14px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-h);
+  margin: 0 0 6px;
+}
+
+/* Item card — the journal display */
+.item-card {
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  background: var(--accent-bg);
+  overflow: hidden;
+}
+.item-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--accent-border);
+  font-weight: 600;
+  color: var(--text-h);
+  font-size: 13.5px;
+}
+.item-tag {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  background: var(--bg);
+}
+.item-card-body { padding: 10px 12px; }
+.item-field-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.item-count { font-weight: 400; }
+.item-empty { font-size: 12px; margin: 0; }
+
+.item-inscriptions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.inscription-row {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  padding: 4px 7px;
+  background: var(--bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 4px;
+}
+.inscription-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.inscription-idx {
+  font-family: var(--mono);
+  font-size: 10px;
+}
+.inscription-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.inscription-report {
+  font-family: ui-serif, Georgia, serif;
+  color: var(--text-h);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Chronicle strip tweak for stage 14 */
+.strip-idx {
+  font-family: var(--mono);
+  font-size: 10px;
+  min-width: 24px;
+}
+.items-tag {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.items-tag-inscribed {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.10);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+.items-tag-read {
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.10);
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+/* Character knowledge grid */
+.items-char-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.items-memory-item {
+  grid-template-columns: auto auto 1fr auto !important;
+}
+.items-source-badge {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.items-source-wrote {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+.items-source-read {
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.12);
+  border-color: rgba(52, 211, 153, 0.35);
+}
+.items-source-witnessed {
+  color: var(--text-dim);
+  background: var(--code-bg);
+  border-color: var(--border);
+}

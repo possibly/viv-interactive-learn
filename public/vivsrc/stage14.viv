@@ -1,0 +1,48 @@
+// Stage 14: items — inscription and inspection.
+//
+// Items are a third entity type alongside characters and locations.
+// A role declared `as: item` is filled by any item at the same location
+// as the initiator; the runtime casts them using the same pool logic it
+// uses for character roles.
+//
+// Inscription writes this action's ID onto an item's log:
+//   @journal inscribe @this
+// After the effect fires the item's `inscriptions` array holds the new
+// action ID. The runtime calls `saveItemInscriptions` on the host.
+//
+// Inspection transfers that history to a character:
+//   @reader inspect @journal
+// The reader gains a memory entry for every action already inscribed on
+// the item — just as if they had actively participated in each one.
+// Knowledge travels from object to mind.
+
+action greet:
+    importance: 1
+    report: '{@greeter.name} says hello to {@friend.name}'
+    roles:
+        @greeter:
+            as: initiator
+        @friend:
+            as: recipient
+
+action write-in-journal:
+    importance: 3
+    report: '{@scribe.name} writes in the tavern journal'
+    roles:
+        @scribe:
+            as: initiator
+        @journal:
+            as: item
+    effects:
+        @journal inscribe @this
+
+reserved action read-journal:
+    importance: 2
+    report: '{@reader.name} reads the tavern journal'
+    roles:
+        @reader:
+            as: initiator
+        @journal:
+            as: item, precast
+    effects:
+        @reader inspect @journal

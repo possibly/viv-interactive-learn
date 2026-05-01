@@ -18,6 +18,7 @@ export type EntityRecord = Record<string, unknown> & {
 export interface WorldState {
   entities: Record<UID, EntityRecord>
   characters: UID[]
+  items: UID[]
   actions: UID[]
   vivInternalState: unknown
   // Diegetic clock. We advance it once per new action so that the
@@ -51,6 +52,7 @@ export function createInitialWorld(): WorldState {
   const state: WorldState = {
     entities: {},
     characters: [],
+    items: [],
     actions: [],
     vivInternalState: null,
     turn: 0,
@@ -126,6 +128,23 @@ export function createStage12World(): WorldState {
   return state
 }
 
+// Stage 14 (items): adds a single item — the tavern journal — that
+// characters can write in (inscription) and read (inspection).
+export const STAGE14_JOURNAL_ID = 'tavern-journal'
+
+export function createStage14World(): WorldState {
+  const state = createInitialWorld()
+  state.items.push(STAGE14_JOURNAL_ID)
+  state.entities[STAGE14_JOURNAL_ID] = {
+    entityType: EntityTypeValues.Item,
+    id: STAGE14_JOURNAL_ID,
+    name: 'Tavern Journal',
+    location: 'tavern',
+    inscriptions: [],
+  }
+  return state
+}
+
 export const STAGE2_CHARACTERS: Array<{ id: UID; name: string; cheerful: boolean }> =
   CHARACTERS.map((c) => ({ ...c, cheerful: STAGE2_CHEERFUL[c.id] ?? false }))
 
@@ -172,14 +191,14 @@ export function makeAdapter(state: WorldState): HostAdapter {
     },
     getCurrentTimestamp: () => state.turn,
     getEntityIDs: (type, locationID) => {
-      // Stage 1 has only the tavern, so when the runtime asks "who's
-      // at locationID?" we hand back everyone of that type.
+      // We only have one location (the tavern), so we ignore locationID
+      // and return all entities of the requested type.
       void locationID
       switch (type) {
         case EntityTypeValues.Character:
           return [...state.characters]
         case EntityTypeValues.Item:
-          return []
+          return [...state.items]
         case EntityTypeValues.Location:
           return []
         case EntityTypeValues.Action:
@@ -204,7 +223,10 @@ export function makeAdapter(state: WorldState): HostAdapter {
       }
       ;(ent.memories as Record<UID, unknown>)[actionID] = memory
     },
-    saveItemInscriptions: () => {},
+    saveItemInscriptions: (itemID, inscriptions) => {
+      if (state.entities[itemID] === undefined) return
+      state.entities[itemID].inscriptions = inscriptions as UID[]
+    },
     debug: { validateAPICalls: true, watchlists: {} },
   }
 }
