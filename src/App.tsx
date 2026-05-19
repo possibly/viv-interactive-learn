@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import BringInViv from './sections/BringInViv'
+import CausalGraph from './sections/CausalGraph'
 import Conditions from './sections/Conditions'
 import Effects from './sections/Effects'
 import Embargoes from './sections/Embargoes'
@@ -25,6 +26,7 @@ const VIV_KEYS = [
   'stage1', 'stage2', 'stage3', 'stage4', 'stage5',
   'stage6', 'stage7', 'stage8', 'stage9', 'stage10',
   'stage11', 'stage12', 'stage13', 'stage14', 'stage15',
+  'causal-graph',
 ] as const
 
 const TOC_SECTIONS: TocSection[] = [
@@ -40,6 +42,7 @@ const TOC_SECTIONS: TocSection[] = [
   { id: 'queries', label: 'Gating actions on the chronicle with queries' },
   { id: 'sifting', label: 'Finding stories in the chronicle' },
   { id: 'reactions', label: 'Actions that cause actions' },
+  { id: 'causal-graph', label: 'How the chronicle becomes a causal graph' },
   { id: 'memory', label: "What's in a character's head" },
   { id: 'selectors', label: 'Many candidates, one policy' },
   { id: 'tropes', label: 'Naming a relational pattern' },
@@ -91,6 +94,7 @@ export default function App() {
       <Queries source={sources.stage6} />
       <Sifting source={sources.stage7} />
       <Reactions source={sources.stage8} />
+      <CausalGraph source={sources['causal-graph']} />
       <Memory source={sources.stage9} />
       <Selectors source={sources.stage10} />
       <Tropes source={sources.stage11} />
