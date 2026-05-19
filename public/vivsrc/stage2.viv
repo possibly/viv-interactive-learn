@@ -1,0 +1,170 @@
+// Stage 2: gossip, rumours, and causal chains.
+//
+// This source illustrates the four mechanisms the Viv runtime uses to
+// build causal links between chronicle events.  The interactive demo on
+// this page runs a pre-generated version of this story rather than
+// compiling and executing this file directly.
+//
+//   1. Action roles     read-note casts @note as an item role.  The item
+//                       was produced by write-note, so write-note is
+//                       automatically recorded as a cause of read-note.
+//
+//   2. Reactions        Every `queue` inside a reactions block records the
+//                       triggering action as a cause of the queued action.
+//
+//   3. Knowledge relay  relay-rumor carries knowledge about write-note via
+//                       `relay @note-event`.  When that knowledge triggers a
+//                       reaction, both relay-rumor AND the original write-note
+//                       are recorded as causes.
+//
+//   4. Inscription      inscribe-tome encodes write-note into a physical item.
+//                       When show-tome delivers the item and the reader
+//                       processes the inscription, both show-tome AND
+//                       write-note are recorded as causes.
+//
+// A fifth mechanism -- forced causes -- lets the host assert arbitrary
+// causal links when it forcibly targets an action.  It is not demonstrated
+// here; see the Viv documentation for details.
+
+action write-note:
+    report: '{@author.name} writes a note about {@subject.name}'
+    roles:
+        @author:
+            as: initiator
+        @subject:
+            as: recipient
+    effects:
+        spawn @note as item:
+            @note.author  = @author
+            @note.subject = @subject
+
+action read-note:
+    report: '{@reader.name} reads the note about {@note.subject.name}'
+    roles:
+        @reader:
+            as: initiator
+        @note:
+            as: item        // casting a past action's output as a role
+                            // creates an action-role causal link to write-note
+    reactions:
+        queue confront
+            with @confronter = @reader
+            with @target     = @note.author
+
+action relay-rumor:
+    report: '{@teller.name} tells {@listener.name} about the note'
+    roles:
+        @teller:   as: initiator
+        @listener: as: recipient
+    relay @note-event       // knowledge about the note event travels with
+                            // this action; both relay-rumor and the note
+                            // event become causes of any triggered reaction
+
+action disturbed:
+    report: '{@person.name} is disturbed by what they heard'
+    roles:
+        @person: as: initiator
+    reactions:
+        queue confront
+            with @confronter = @person
+            with @target     = @note-event.author
+
+action confront:
+    report: '{@confronter.name} confronts {@target.name}'
+    roles:
+        @confronter: as: initiator
+        @target:     as: recipient
+    reactions:
+        queue apologize
+            with @apologizer = @target
+            with @recipient  = @confronter
+        queue argue
+            with @arguer  = @target
+            with @target  = @confronter
+
+action apologize:
+    report: '{@apologizer.name} apologizes to {@recipient.name}'
+    roles:
+        @apologizer: as: initiator
+        @recipient:  as: recipient
+    reactions:
+        queue forgive
+            with @forgiver = @recipient
+            with @forgiven = @apologizer
+
+action forgive:
+    report: '{@forgiver.name} forgives {@forgiven.name}'
+    roles:
+        @forgiver: as: initiator
+        @forgiven: as: recipient
+    reactions:
+        queue celebrate
+
+action argue:
+    report: '{@arguer.name} argues with {@target.name}'
+    roles:
+        @arguer: as: initiator
+        @target: as: recipient
+    reactions:
+        queue reconcile
+            with @reconciler = @target
+            with @other      = @arguer
+
+action reconcile:
+    report: '{@reconciler.name} reconciles with {@other.name}'
+    roles:
+        @reconciler: as: initiator
+        @other:      as: recipient
+    reactions:
+        queue celebrate
+
+action inscribe-tome:
+    report: '{@scribe.name} inscribes the tome with the story'
+    roles:
+        @scribe: as: initiator
+    effects:
+        @tome.inscription = @note-event  // embeds event knowledge into an item
+                                         // (inscription causal link)
+
+action show-tome:
+    report: '{@shower.name} shows {@viewer.name} the inscribed tome'
+    roles:
+        @shower: as: initiator
+        @viewer: as: recipient
+    effects:
+        queue read-tome
+            with @reader = @viewer
+            urgent
+
+action read-tome:
+    report: '{@reader.name} reads the inscription about the note'
+    roles:
+        @reader: as: initiator
+    reactions:
+        queue tell-all
+            with @teller = @reader
+
+action tell-all:
+    report: '{@teller.name} tells everyone about the note'
+    roles:
+        @teller: as: initiator
+    reactions:
+        queue embarrassed
+            with @subject = @tome.inscription.author
+
+action embarrassed:
+    report: '{@subject.name} is embarrassed by the revelation'
+    roles:
+        @subject: as: initiator
+
+action celebrate:
+    report: 'Everyone celebrates together'
+    roles:
+        @participant:
+            as: initiator
+
+action chat:
+    report: '{@speaker.name} chats with {@listener.name}'
+    roles:
+        @speaker:  as: initiator
+        @listener: as: recipient
