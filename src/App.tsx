@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import AlgorithmDemo from './sandbox/AlgorithmDemo'
+import CausalGraphDemo from './sandbox/CausalGraphDemo'
 import { HighlightedTs, HighlightedViv } from './sandbox/highlight'
 
 const VIV_SOURCE_PATH = `${import.meta.env.BASE_URL}vivsrc/stage1.viv`
+const STAGE2_SOURCE_PATH = `${import.meta.env.BASE_URL}vivsrc/stage2.viv`
 
 const HOST_WORLD = `// The host owns the world. Plain objects -- nothing here knows
 // about Viv yet. Three friends with an id and a name; location is
@@ -41,14 +43,17 @@ while (true) {
 
 export default function App() {
   const [vivSource, setVivSource] = useState<string>('Loading...')
+  const [stage2Source, setStage2Source] = useState<string>('Loading...')
 
   useEffect(() => {
     let cancelled = false
     fetch(VIV_SOURCE_PATH)
       .then((r) => r.text())
-      .then((t) => {
-        if (!cancelled) setVivSource(t)
-      })
+      .then((t) => { if (!cancelled) setVivSource(t) })
+      .catch(() => {})
+    fetch(STAGE2_SOURCE_PATH)
+      .then((r) => r.text())
+      .then((t) => { if (!cancelled) setStage2Source(t) })
       .catch(() => {})
     return () => {
       cancelled = true
@@ -158,13 +163,118 @@ export default function App() {
 
       <AlgorithmDemo />
 
-      <section className="prose stub">
-        <h2>What comes next</h2>
+      {/* ── Lesson 2: Causal graphs ─────────────────────────────────── */}
+
+      <section className="prose" style={{ marginTop: 64 }}>
+        <p className="kicker">Lesson 2</p>
+        <h2>From chronicle to causal graph</h2>
         <p>
-          The next pass adds conditions, then importance, then location-aware roles, then
-          reactions. We'll re-introduce them one at a time, alongside their own algorithm
-          panels, once the Stage 1 walkthrough above feels right.
+          The chronicle you built in Lesson 1 is a flat list: events, in order, with
+          timestamps. But the runtime doesn't just log them — it records{' '}
+          <em>why</em> each event happened. Those "why" links form a directed graph,
+          and the graph is what turns a sequence of events into{' '}
+          <strong>interlocking storylines</strong>.
         </p>
+        <p>
+          The runtime builds causal links through four mechanisms. Each one
+          is demonstrated in the interactive chronicle below.
+        </p>
+      </section>
+
+      <section className="prose">
+        <h3>1 — Action roles</h3>
+        <p>
+          When an action casts a past action's output (an item, a location) in one
+          of its roles, the runtime automatically links the producer action as a cause.
+          In the example below, <code>read-note</code> casts the note item as{' '}
+          <code>@note</code>. Because the note was produced by <code>write-note</code>,
+          that action becomes a cause of <code>read-note</code> — with no queuing, no
+          relay, and nothing extra declared in the Viv source.
+        </p>
+
+        <h3>2 — Reactions</h3>
+        <p>
+          Any action can declare a <code>reactions</code> block that queues follow-up
+          actions. When the runtime fires a reaction, the triggering action is always
+          recorded as a cause of the queued one. Reaction chains — confront triggers
+          apologize, apologize triggers forgive — all trace back through the causal graph
+          to the action that started the chain.
+        </p>
+
+        <h3>3 — Knowledge relaying</h3>
+        <p>
+          A <code>relay</code> directive lets one action carry knowledge about an
+          earlier event to a new audience. When the runtime processes that relayed
+          knowledge and it triggers a reaction, <em>both</em> the relay action and the
+          original event become causes of the resulting reaction. Two separate chronicle
+          entries, far apart in time, can jointly cause a third.
+        </p>
+
+        <h3>4 — Inscription</h3>
+        <p>
+          An item can be inscribed with knowledge about an earlier action — think of a
+          note, a journal, or a carved stone. When a character inspects that item and the
+          inscription triggers a reaction, both the action that delivered the item{' '}
+          <em>and</em> the original action described by the inscription are recorded as
+          causes. A long-dead event can reach forward through an artefact and cause
+          something new.
+        </p>
+
+        <p>
+          A fifth mechanism — <strong>forced causes</strong> — lets the host application
+          assert arbitrary causal links when it forcibly targets an action. This is an
+          escape hatch for scripted events, cutscenes, or tutorial beats where the
+          authoring system needs direct control. It is not demonstrated here; see the
+          Viv documentation for details.
+        </p>
+      </section>
+
+      <section className="prose">
+        <h2>An interactive chronicle</h2>
+        <p>
+          Below is a 19-step chronicle from a small social world: a gossip note sets
+          three separate chains of events in motion. Hit{' '}
+          <strong>Reroll characters</strong> to swap the character names (the causal
+          structure stays identical), <strong>Reveal causal links</strong> to see which
+          mechanism connects each event to its causes, and{' '}
+          <strong>Show sifting diagram</strong> to see how three distinct storylines are
+          extracted from the same flat chronicle.
+        </p>
+      </section>
+
+      <CausalGraphDemo />
+
+      <section className="prose">
+        <h2>What the sifting diagram shows</h2>
+        <p>
+          A <strong>sifting pattern</strong> is a query over the causal graph. It names
+          a narrative shape — "something is written, then read, then someone reacts" —
+          and the runtime searches for chronicle events that fit that shape, connected
+          by the right kind of causal link. When you run multiple patterns against the
+          same chronicle, the same events appear in different arcs, each telling a
+          different facet of what happened.
+        </p>
+        <p>
+          In the diagram above, all three storylines share a single{' '}
+          <code>write-note</code> event at the root. One sifting pattern traces the
+          direct confrontation through an action-role link. A second finds the relayed
+          rumour through a knowledge-relay link. A third follows the inscribed tome
+          through an inscription link. Three patterns, three arcs, one chronicle —
+          that's the "interlocking storylines" aesthetic.
+        </p>
+      </section>
+
+      <section className="prose">
+        <h2>What the Viv source looks like</h2>
+        <p>
+          Here is the <code>.viv</code> source for this story world. The key authoring
+          constructs are: item-typed roles (action-role links), <code>reactions</code>{' '}
+          blocks (reaction links), the <code>relay</code> directive (knowledge-relay
+          links), and effects that write to an item's inscription field (inscription
+          links). Everything else — how they combine into a causal graph, which
+          sifting patterns match — is handled by the runtime.
+        </p>
+        <HighlightedViv code={stage2Source} />
       </section>
 
       <footer className="page-footer">
