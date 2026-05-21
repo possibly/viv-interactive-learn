@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import Stage9Demo from '../sandbox/Stage9Demo'
 import { HighlightedTs, HighlightedViv } from '../sandbox/highlight'
 
@@ -34,7 +35,7 @@ export default function Memory({ source }: Props) {
   return (
     <>
       <section className="prose" id="memory">
-        <h2>What's in a character's head</h2>
+        <h2>What's in a character's head<HeadingLink id="memory" /></h2>
         <p>
           The chronicle is the global record. Each character also has
           their own filtered view of it: a memory book of actions they

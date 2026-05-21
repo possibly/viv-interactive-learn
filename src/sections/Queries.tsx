@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import Stage6Demo from '../sandbox/Stage6Demo'
 import { HighlightedViv } from '../sandbox/highlight'
 
@@ -9,7 +10,7 @@ export default function Queries({ source }: Props) {
   return (
     <>
       <section className="prose" id="queries">
-        <h2>Gating actions on the chronicle with queries</h2>
+        <h2>Gating actions on the chronicle with queries<HeadingLink id="queries" /></h2>
         <p>
           The story still feels disorderly. Tease and cheer_up can fire on turn 1, before
           anyone has even said hello. We want greeting to come <em>first</em>, and we want

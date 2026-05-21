@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import SelectorCascadeDemo from '../sandbox/SelectorCascadeDemo'
 import { HighlightedViv } from '../sandbox/highlight'
 
@@ -40,7 +41,7 @@ export default function Selectors({ source }: Props) {
   return (
     <>
       <section className="prose" id="selectors">
-        <h2>Many candidates, one policy</h2>
+        <h2>Many candidates, one policy<HeadingLink id="selectors" /></h2>
         <p>
           Reactions queue a single action by name. Often that's enough,
           but sometimes the right move depends on context: an author

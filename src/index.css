@@ -187,6 +187,27 @@ pre.code code {
 section[id] {
   scroll-margin-top: 64px;
 }
+
+/* Small "[link]" anchor next to section headings so readers can grab a
+   hyperlink to the subsection without fiddling with the URL bar. */
+.heading-link {
+  font-family: var(--mono);
+  font-size: 0.55em;
+  font-weight: 500;
+  color: var(--text-dim);
+  margin-left: 10px;
+  vertical-align: middle;
+  opacity: 0.55;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+.heading-link:hover,
+.heading-link:focus-visible {
+  color: var(--accent);
+  opacity: 1;
+  text-decoration: none;
+}
+
 .hero h1 {
   font-size: 48px;
   letter-spacing: -0.02em;

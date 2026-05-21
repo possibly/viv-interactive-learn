@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import Stage15Demo from '../sandbox/Stage15Demo'
 import { HighlightedTs, HighlightedViv } from '../sandbox/highlight'
 
@@ -19,7 +20,7 @@ export default function Items({ source }: Props) {
   return (
     <>
       <section className="prose" id="items">
-        <h2>Items that record history</h2>
+        <h2>Items that record history<HeadingLink id="items" /></h2>
         <p>
           The beer section showed items participating in actions and carrying
           mutable properties. Now add a tavern journal — a single item that

@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import { HighlightedViv } from '../sandbox/highlight'
 
 interface Props {
@@ -7,7 +8,7 @@ interface Props {
 export default function BringInViv({ source }: Props) {
   return (
     <section className="prose" id="viv-intro">
-      <h2>Now bring in Viv</h2>
+      <h2>Now bring in Viv<HeadingLink id="viv-intro" /></h2>
       <p>
         <strong>Viv is a small DSL for declaring what's possible</strong>; the runtime
         decides who does what when. You write the actions once, their roles, their

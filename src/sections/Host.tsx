@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import { HighlightedTs } from '../sandbox/highlight'
 
 const HOST_WORLD = `// The host owns the world. Plain objects, nothing here knows
@@ -15,7 +16,7 @@ const characters = ["alice", "bob", "carol"];
 export default function Host() {
   return (
     <section className="prose" id="host">
-      <h2>Start with the host</h2>
+      <h2>Start with the host<HeadingLink id="host" /></h2>
       <p>
         Let's start by deciding what exists in our game. We declare this in our host
         program.

@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import Stage3Demo from '../sandbox/Stage3Demo'
 import { HighlightedTs, HighlightedViv } from '../sandbox/highlight'
 
@@ -25,7 +26,7 @@ export default function Effects({ source }: Props) {
   return (
     <>
       <section className="prose" id="effects">
-        <h2>Actions that change the world</h2>
+        <h2>Actions that change the world<HeadingLink id="effects" /></h2>
         <p>
           Conditions read the world. The other half of an action is{' '}
           <a

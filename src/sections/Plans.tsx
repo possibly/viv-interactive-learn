@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import Stage12Demo from '../sandbox/Stage12Demo'
 import { HighlightedTs, HighlightedViv } from '../sandbox/highlight'
 
@@ -33,7 +34,7 @@ export default function Plans({ source }: Props) {
   return (
     <>
       <section className="prose" id="plans">
-        <h2>Multi-phase reaction tapes</h2>
+        <h2>Multi-phase reaction tapes<HeadingLink id="plans" /></h2>
         <p>
           A reaction queues one follow-up action: tease fires, retaliate lands the next
           time the target gets a turn, and we're done. That's a single beat. Anything

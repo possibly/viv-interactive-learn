@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import ImportanceLab from '../sandbox/ImportanceLab'
 import Stage4Demo from '../sandbox/Stage4Demo'
 import { HighlightedViv } from '../sandbox/highlight'
@@ -12,7 +13,7 @@ export default function Importance({ source, importance, setImportance }: Props)
   return (
     <>
       <section className="prose" id="importance">
-        <h2>Steering selection with importance</h2>
+        <h2>Steering selection with importance<HeadingLink id="importance" /></h2>
         <p>
           Step 4 has been picking uniformly: every passing cast got the same{' '}
           <code>1/N</code> chance. Now we want to extend our simulation: we want our

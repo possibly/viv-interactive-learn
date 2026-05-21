@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import Stage7Demo from '../sandbox/Stage7Demo'
 import { HighlightedTs, HighlightedViv } from '../sandbox/highlight'
 
@@ -31,7 +32,7 @@ export default function Sifting({ source }: Props) {
   return (
     <>
       <section className="prose" id="sifting">
-        <h2>Finding stories in the chronicle</h2>
+        <h2>Finding stories in the chronicle<HeadingLink id="sifting" /></h2>
         <p>
           So far the chronicle has been a record of what happened, with each
           new action read by queries to gate the <em>next</em> action. Story
