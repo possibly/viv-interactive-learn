@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import Stage14Demo from '../sandbox/Stage14Demo'
 import { HighlightedTs, HighlightedViv } from '../sandbox/highlight'
 
@@ -30,7 +31,7 @@ export default function ItemsInventory({ source }: Props) {
   return (
     <>
       <section className="prose" id="items-inventory">
-        <h2>Items and a basic inventory</h2>
+        <h2>Items and a basic inventory<HeadingLink id="items-inventory" /></h2>
         <p>
           So far every entity in the world has been a character. Viv supports a
           third entity type: <strong>items</strong>. Items live at a location and

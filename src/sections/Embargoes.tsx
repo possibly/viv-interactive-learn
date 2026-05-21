@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import Stage5Demo from '../sandbox/Stage5Demo'
 import { HighlightedViv } from '../sandbox/highlight'
 
@@ -9,7 +10,7 @@ export default function Embargoes({ source }: Props) {
   return (
     <>
       <section className="prose" id="embargoes">
-        <h2>Keeping an action from happening twice</h2>
+        <h2>Keeping an action from happening twice<HeadingLink id="embargoes" /></h2>
         <p>
           With importance dialed in, our friends now tease and cheer up plenty often, but
           they also greet whenever the picker rolls that way. We want greeting to be a

@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import { HighlightedTs } from '../sandbox/highlight'
 
 const HOST_WITH_VIV = `import { initializeVivRuntime, selectAction, EntityType } from "viv-runtime";
@@ -30,7 +31,7 @@ while (true) {
 export default function WireRuntime() {
   return (
     <section className="prose" id="wire">
-      <h2>Wire the runtime into the host</h2>
+      <h2>Wire the runtime into the host<HeadingLink id="wire" /></h2>
       <p>
         Three additions to the host: import the runtime, initialize it, and let it drive
         the loop.

@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import Stage11Demo from '../sandbox/Stage11Demo'
 import { HighlightedViv } from '../sandbox/highlight'
 
@@ -9,7 +10,7 @@ export default function Tropes({ source }: Props) {
   return (
     <>
       <section className="prose" id="tropes">
-        <h2>Naming a relational pattern</h2>
+        <h2>Naming a relational pattern<HeadingLink id="tropes" /></h2>
         <p>
           Up to now every action's conditions have been written inline. That
           works fine when each pattern only shows up once, but the moment two

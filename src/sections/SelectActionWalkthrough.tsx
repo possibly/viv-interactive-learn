@@ -1,4 +1,5 @@
 import AlgorithmDemo from '../sandbox/AlgorithmDemo'
+import HeadingLink from '../sandbox/HeadingLink'
 
 export default function SelectActionWalkthrough() {
   return (
@@ -6,6 +7,7 @@ export default function SelectActionWalkthrough() {
       <section className="prose" id="select-action">
         <h2>
           How <code>selectAction</code> works
+          <HeadingLink id="select-action" />
         </h2>
         <p>
           Pick a character below to see the four steps the runtime performs inside that

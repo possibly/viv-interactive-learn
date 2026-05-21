@@ -1,4 +1,5 @@
 import ActionSelectionFlow from '../sandbox/ActionSelectionFlow'
+import HeadingLink from '../sandbox/HeadingLink'
 import Stage8Demo from '../sandbox/Stage8Demo'
 import { HighlightedViv } from '../sandbox/highlight'
 
@@ -10,7 +11,7 @@ export default function Reactions({ source }: Props) {
   return (
     <>
       <section className="prose" id="reactions">
-        <h2>Actions that cause actions</h2>
+        <h2>Actions that cause actions<HeadingLink id="reactions" /></h2>
         <p>
           Sifting was about reading the chronicle. The other half of the
           loop is writing it: an action can declare that another action

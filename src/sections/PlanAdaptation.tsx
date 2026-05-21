@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import Stage13Demo from '../sandbox/Stage13Demo'
 import { HighlightedViv } from '../sandbox/highlight'
 
@@ -9,7 +10,7 @@ export default function PlanAdaptation({ source }: Props) {
   return (
     <>
       <section className="prose" id="plan-adaptation">
-        <h2>Plans that react to a changing world</h2>
+        <h2>Plans that react to a changing world<HeadingLink id="plan-adaptation" /></h2>
         <p>
           Stage 12's <code>grudge-arc</code> has a small but important hole: a phase's
           queue instruction is fire-and-forget, and so the planner can race through all

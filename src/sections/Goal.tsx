@@ -1,7 +1,9 @@
+import HeadingLink from '../sandbox/HeadingLink'
+
 export default function Goal() {
   return (
     <section className="prose" id="goal">
-      <h2>What we want our characters to do</h2>
+      <h2>What we want our characters to do<HeadingLink id="goal" /></h2>
       <p>
         Three friends, <strong>Alice</strong>, <strong>Bob</strong>, and{' '}
         <strong>Carol</strong>, hanging out together. We want them to be able to{' '}

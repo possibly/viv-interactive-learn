@@ -1,3 +1,4 @@
+import HeadingLink from '../sandbox/HeadingLink'
 import Stage2Demo from '../sandbox/Stage2Demo'
 import { HighlightedTs, HighlightedViv } from '../sandbox/highlight'
 
@@ -19,7 +20,7 @@ export default function Conditions({ source }: Props) {
   return (
     <>
       <section className="prose" id="conditions">
-        <h2>Gating actions with conditions</h2>
+        <h2>Gating actions with conditions<HeadingLink id="conditions" /></h2>
         <p>
           So far our friends only know how to greet. Let's extend the simulation: we want
           them to do more than say hello, but only some of those new actions should be

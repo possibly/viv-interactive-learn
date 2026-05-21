@@ -1,4 +1,5 @@
 import CausalGraphDemo from '../sandbox/CausalGraphDemo'
+import HeadingLink from '../sandbox/HeadingLink'
 import { HighlightedViv } from '../sandbox/highlight'
 
 interface Props {
@@ -9,7 +10,7 @@ export default function CausalGraph({ source }: Props) {
   return (
     <>
       <section className="prose" id="causal-graph">
-        <h2>How the chronicle becomes a causal graph</h2>
+        <h2>How the chronicle becomes a causal graph<HeadingLink id="causal-graph" /></h2>
         <p>
           The previous section mentioned that action records now carry a{' '}
           <code>causes</code> field. That field is what turns the chronicle
